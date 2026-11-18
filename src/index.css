@@ -16,35 +16,63 @@
   font-display: swap;
 }
 
+/*
+  World: an arcade cabinet in a dark room. The ground is the unlit tube,
+  green is the phosphor, and amber and red are the coloured overlay strips
+  that cabinets laid over monochrome screens.
+*/
 :root {
-  --text: #33ff33;
-  --text-h: #66ff66;
-  --bg: #000000;
-  --border: #1f7a1f;
-  --code-bg: #061006;
+  --ground: #07080c;
+  --ground-raised: #0c0f14;
+  --line: #18211d;
+  --line-strong: #2b4237;
+  --ink: #e4ede6;
+  --ink-dim: #93a69a;
+  --green: #3dff7a;
+  --green-deep: #1d7a40;
+  --amber: #ffb43a;
+  --red: #ff3d6e;
 
-  --sans: 'Share Tech Mono', ui-monospace, Consolas, monospace;
-  --heading: 'IBM BIOS', 'Press Start 2P', ui-monospace, Consolas, monospace;
-  --mono: 'Share Tech Mono', ui-monospace, Consolas, monospace;
-  --cgathin: 'IBM CGAthin', 'Share Tech Mono', ui-monospace, Consolas, monospace;
+  --pixel: 'IBM BIOS', 'Press Start 2P', ui-monospace, monospace;
+  --ui: 'IBM CGAthin', 'Share Tech Mono', ui-monospace, monospace;
+  --body: 'Share Tech Mono', ui-monospace, Consolas, monospace;
 
-  font: 16px/160% var(--sans);
-  letter-spacing: 0.5px;
-  color: var(--text);
-  background: var(--bg);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --nav-h: 56px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1200px;
+
+  color-scheme: dark;
+  font: 17px/1.6 var(--body);
+  color: var(--ink);
+  background: var(--ground);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
-  @media (max-width: 1024px) {
-    font-size: 15px;
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--nav-h);
+  scrollbar-color: var(--green-deep) var(--ground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--ground);
   cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDIyIDMyIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGZpbGw9IiMwMDAwMDAiIGQ9Ik0wIDBoMnYyaC0yWiBNMCAyaDJ2MmgtMlogTTIgMmgydjJoLTJaIE0wIDRoMnYyaC0yWiBNNCA0aDJ2MmgtMlogTTAgNmgydjJoLTJaIE02IDZoMnYyaC0yWiBNMCA4aDJ2MmgtMlogTTggOGgydjJoLTJaIE0wIDEwaDJ2MmgtMlogTTEwIDEwaDJ2MmgtMlogTTAgMTJoMnYyaC0yWiBNMTIgMTJoMnYyaC0yWiBNMCAxNGgydjJoLTJaIE0xNCAxNGgydjJoLTJaIE0wIDE2aDJ2MmgtMlogTTE2IDE2aDJ2MmgtMlogTTAgMThoMnYyaC0yWiBNMTggMThoMnYyaC0yWiBNMCAyMGgydjJoLTJaIE0xMCAyMGgydjJoLTJaIE0xMiAyMGgydjJoLTJaIE0xNCAyMGgydjJoLTJaIE0xNiAyMGgydjJoLTJaIE0xOCAyMGgydjJoLTJaIE0yMCAyMGgydjJoLTJaIE0wIDIyaDJ2MmgtMlogTTYgMjJoMnYyaC0yWiBNMTIgMjJoMnYyaC0yWiBNMCAyNGgydjJoLTJaIE00IDI0aDJ2MmgtMlogTTggMjRoMnYyaC0yWiBNMTQgMjRoMnYyaC0yWiBNMCAyNmgydjJoLTJaIE0yIDI2aDJ2MmgtMlogTTggMjZoMnYyaC0yWiBNMTQgMjZoMnYyaC0yWiBNMTAgMjhoMnYyaC0yWiBNMTYgMjhoMnYyaC0yWiBNMTAgMzBoMnYyaC0yWiBNMTIgMzBoMnYyaC0yWiBNMTQgMzBoMnYyaC0yWiBNMTYgMzBoMnYyaC0yWiIvPjxwYXRoIGZpbGw9IiMzM2ZmMzMiIGQ9Ik0yIDRoMnYyaC0yWiBNMiA2aDJ2MmgtMlogTTQgNmgydjJoLTJaIE0yIDhoMnYyaC0yWiBNNCA4aDJ2MmgtMlogTTYgOGgydjJoLTJaIE0yIDEwaDJ2MmgtMlogTTQgMTBoMnYyaC0yWiBNNiAxMGgydjJoLTJaIE04IDEwaDJ2MmgtMlogTTIgMTJoMnYyaC0yWiBNNCAxMmgydjJoLTJaIE02IDEyaDJ2MmgtMlogTTggMTJoMnYyaC0yWiBNMTAgMTJoMnYyaC0yWiBNMiAxNGgydjJoLTJaIE00IDE0aDJ2MmgtMlogTTYgMTRoMnYyaC0yWiBNOCAxNGgydjJoLTJaIE0xMCAxNGgydjJoLTJaIE0xMiAxNGgydjJoLTJaIE0yIDE2aDJ2MmgtMlogTTQgMTZoMnYyaC0yWiBNNiAxNmgydjJoLTJaIE04IDE2aDJ2MmgtMlogTTEwIDE2aDJ2MmgtMlogTTEyIDE2aDJ2MmgtMlogTTE0IDE2aDJ2MmgtMlogTTIgMThoMnYyaC0yWiBNNCAxOGgydjJoLTJaIE02IDE4aDJ2MmgtMlogTTggMThoMnYyaC0yWiBNMTAgMThoMnYyaC0yWiBNMTIgMThoMnYyaC0yWiBNMTQgMThoMnYyaC0yWiBNMTYgMThoMnYyaC0yWiBNMiAyMGgydjJoLTJaIE00IDIwaDJ2MmgtMlogTTYgMjBoMnYyaC0yWiBNOCAyMGgydjJoLTJaIE0yIDIyaDJ2MmgtMlogTTQgMjJoMnYyaC0yWiBNOCAyMmgydjJoLTJaIE0xMCAyMmgydjJoLTJaIE0yIDI0aDJ2MmgtMlogTTEwIDI0aDJ2MmgtMlogTTEyIDI0aDJ2MmgtMlogTTEwIDI2aDJ2MmgtMlogTTEyIDI2aDJ2MmgtMlogTTEyIDI4aDJ2MmgtMlogTTE0IDI4aDJ2MmgtMloiLz48L3N2Zz4K")
     0 0,
     auto;
@@ -55,59 +83,96 @@ button {
   cursor: inherit;
 }
 
+::selection {
+  background: var(--green);
+  color: var(--ground);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid var(--ground);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
 #root {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0;
-  text-align: left;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
+h2,
+h3 {
+  font-family: var(--pixel);
   font-weight: 400;
-  color: var(--text-h);
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-wrap: balance;
+  margin: 0;
 }
 
-h1 {
-  font-size: clamp(32px, 7.5vw, 110px);
-  line-height: 150%;
-  letter-spacing: 0;
-  margin: 24px 0;
-  @media (max-width: 1024px) {
-    margin: 16px 0;
-  }
-}
+/* The pixel face is drawn on an 8px grid, so its sizes stay on multiples of 8. */
 h2 {
+  font-size: 40px;
+  line-height: 1.2;
+  color: var(--ink);
+  text-transform: uppercase;
+  margin-bottom: 56px;
+}
+
+h3 {
   font-size: 16px;
-  line-height: 160%;
-  letter-spacing: 0;
-  margin: 0 0 16px;
-  @media (max-width: 1024px) {
-    font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  h2 {
+    font-size: 24px;
+    margin-bottom: 40px;
   }
 }
+
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 0;
-  color: var(--text-h);
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 0.35em;
+  margin: 0 0.1em;
+  font: inherit;
+  font-size: 0.85em;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  background: var(--ground-raised);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-  border: 3px solid var(--border);
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

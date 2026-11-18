@@ -4,7 +4,7 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCursor = true }) {
+function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCursor = true, ...rest }) {
   const ref = useRef(null);
   const [typed, setTyped] = useState(() => (prefersReducedMotion() ? text : ""));
   const [done, setDone] = useState(() => prefersReducedMotion());
@@ -47,10 +47,13 @@ function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCurs
     };
   }, [text, speed]);
 
+  // The full text is always exposed to assistive tech; the typing is visual only.
   return (
-    <Tag ref={ref} className={className}>
-      {typed}
-      {showCursor && !done && <span className="cursor">_</span>}
+    <Tag ref={ref} className={className} aria-label={text} {...rest}>
+      <span aria-hidden="true">
+        {typed}
+        {showCursor && !done && <span className="cursor">_</span>}
+      </span>
     </Tag>
   );
 }

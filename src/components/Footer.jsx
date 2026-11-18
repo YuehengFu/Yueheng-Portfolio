@@ -1,9 +1,16 @@
-import TypewriterText from "./TypewriterText";
-
 function Footer() {
   return (
     <footer className="footer">
-      <TypewriterText as="p" text={`© ${new Date().getFullYear()} Yueheng Fu`} speed={6} showCursor={false} />
+      <div className="wrap footer-inner">
+        <p>© {new Date().getFullYear()} Yueheng Fu</p>
+        <p>
+          Pixel fonts from the{" "}
+          <a href="https://int10h.org/oldschool-pc-fonts/" target="_blank" rel="noreferrer">
+            Oldschool PC Font Resource
+          </a>{" "}
+          by VileR, CC BY-SA 4.0
+        </p>
+      </div>
     </footer>
   );
 }
