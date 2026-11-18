@@ -73,14 +73,27 @@ html {
 body {
   margin: 0;
   background: var(--ground);
-  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDIyIDMyIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGZpbGw9IiMwMDAwMDAiIGQ9Ik0wIDBoMnYyaC0yWiBNMCAyaDJ2MmgtMlogTTIgMmgydjJoLTJaIE0wIDRoMnYyaC0yWiBNNCA0aDJ2MmgtMlogTTAgNmgydjJoLTJaIE02IDZoMnYyaC0yWiBNMCA4aDJ2MmgtMlogTTggOGgydjJoLTJaIE0wIDEwaDJ2MmgtMlogTTEwIDEwaDJ2MmgtMlogTTAgMTJoMnYyaC0yWiBNMTIgMTJoMnYyaC0yWiBNMCAxNGgydjJoLTJaIE0xNCAxNGgydjJoLTJaIE0wIDE2aDJ2MmgtMlogTTE2IDE2aDJ2MmgtMlogTTAgMThoMnYyaC0yWiBNMTggMThoMnYyaC0yWiBNMCAyMGgydjJoLTJaIE0xMCAyMGgydjJoLTJaIE0xMiAyMGgydjJoLTJaIE0xNCAyMGgydjJoLTJaIE0xNiAyMGgydjJoLTJaIE0xOCAyMGgydjJoLTJaIE0yMCAyMGgydjJoLTJaIE0wIDIyaDJ2MmgtMlogTTYgMjJoMnYyaC0yWiBNMTIgMjJoMnYyaC0yWiBNMCAyNGgydjJoLTJaIE00IDI0aDJ2MmgtMlogTTggMjRoMnYyaC0yWiBNMTQgMjRoMnYyaC0yWiBNMCAyNmgydjJoLTJaIE0yIDI2aDJ2MmgtMlogTTggMjZoMnYyaC0yWiBNMTQgMjZoMnYyaC0yWiBNMTAgMjhoMnYyaC0yWiBNMTYgMjhoMnYyaC0yWiBNMTAgMzBoMnYyaC0yWiBNMTIgMzBoMnYyaC0yWiBNMTQgMzBoMnYyaC0yWiBNMTYgMzBoMnYyaC0yWiIvPjxwYXRoIGZpbGw9IiMzM2ZmMzMiIGQ9Ik0yIDRoMnYyaC0yWiBNMiA2aDJ2MmgtMlogTTQgNmgydjJoLTJaIE0yIDhoMnYyaC0yWiBNNCA4aDJ2MmgtMlogTTYgOGgydjJoLTJaIE0yIDEwaDJ2MmgtMlogTTQgMTBoMnYyaC0yWiBNNiAxMGgydjJoLTJaIE04IDEwaDJ2MmgtMlogTTIgMTJoMnYyaC0yWiBNNCAxMmgydjJoLTJaIE02IDEyaDJ2MmgtMlogTTggMTJoMnYyaC0yWiBNMTAgMTJoMnYyaC0yWiBNMiAxNGgydjJoLTJaIE00IDE0aDJ2MmgtMlogTTYgMTRoMnYyaC0yWiBNOCAxNGgydjJoLTJaIE0xMCAxNGgydjJoLTJaIE0xMiAxNGgydjJoLTJaIE0yIDE2aDJ2MmgtMlogTTQgMTZoMnYyaC0yWiBNNiAxNmgydjJoLTJaIE04IDE2aDJ2MmgtMlogTTEwIDE2aDJ2MmgtMlogTTEyIDE2aDJ2MmgtMlogTTE0IDE2aDJ2MmgtMlogTTIgMThoMnYyaC0yWiBNNCAxOGgydjJoLTJaIE02IDE4aDJ2MmgtMlogTTggMThoMnYyaC0yWiBNMTAgMThoMnYyaC0yWiBNMTIgMThoMnYyaC0yWiBNMTQgMThoMnYyaC0yWiBNMTYgMThoMnYyaC0yWiBNMiAyMGgydjJoLTJaIE00IDIwaDJ2MmgtMlogTTYgMjBoMnYyaC0yWiBNOCAyMGgydjJoLTJaIE0yIDIyaDJ2MmgtMlogTTQgMjJoMnYyaC0yWiBNOCAyMmgydjJoLTJaIE0xMCAyMmgydjJoLTJaIE0yIDI0aDJ2MmgtMlogTTEwIDI0aDJ2MmgtMlogTTEyIDI0aDJ2MmgtMlogTTEwIDI2aDJ2MmgtMlogTTEyIDI2aDJ2MmgtMlogTTEyIDI4aDJ2MmgtMlogTTE0IDI4aDJ2MmgtMloiLz48L3N2Zz4K")
-    0 0,
-    auto;
+}
+
+/* Pixel cursors from scripts/make-cursors.mjs. The plain url() line is the
+   fallback for browsers without image-set() in cursors. */
+body {
+  cursor: url("./assets/cursors/arrow.png") 2 2, auto;
+  cursor: image-set(url("./assets/cursors/arrow.png") 1x, url("./assets/cursors/arrow@2x.png") 2x) 2 2, auto;
 }
 
 a,
-button {
-  cursor: inherit;
+button,
+label,
+summary,
+[role="tab"] {
+  cursor: url("./assets/cursors/hand.png") 11 2, pointer;
+  cursor: image-set(url("./assets/cursors/hand.png") 1x, url("./assets/cursors/hand@2x.png") 2x) 11 2, pointer;
+}
+
+.hero-canvas {
+  cursor: url("./assets/cursors/crosshair.png") 14 14, crosshair;
+  cursor: image-set(url("./assets/cursors/crosshair.png") 1x, url("./assets/cursors/crosshair@2x.png") 2x) 14 14, crosshair;
 }
 
 ::selection {

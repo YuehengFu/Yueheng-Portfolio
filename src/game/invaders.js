@@ -111,12 +111,13 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
   function layout() {
     const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
     if (!cssW || !cssH) return;
-    P = cssW < 640 ? 3 : 4;
+    // Phones get a finer grid so the name's bricks stay distinct.
+    P = cssW < 640 ? 2 : 4;
     cols = Math.ceil(cssW / P);
     rows = Math.ceil(cssH / P);
     canvas.width = cols;
     canvas.height = rows;
-    k = cols >= 280 ? 2 : 1;
+    k = P === 2 || cols >= 280 ? 2 : 1;
 
     // Name bricks.
     const lines = cols < 220 ? ["YUEHENG", "FU"] : ["YUEHENG FU"];

@@ -22,6 +22,19 @@ main {
   }
 }
 
+.section h2:not(.contact-title) {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.section h2:not(.contact-title)::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-strong);
+}
+
 /* Pixel chevron used as the selection marker across the page. */
 .select-item::before,
 .nav-links a::before {
@@ -111,6 +124,11 @@ main {
 
 .icon-btn:active {
   transform: scale(0.95);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -394,11 +412,9 @@ main {
 }
 
 .hero-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px 24px;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
 }
 
 .hero-actions .btn {
@@ -459,6 +475,298 @@ main {
   }
   .hero-over {
     font-size: 24px;
+  }
+}
+
+/* ---------- Player stats ---------- */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.player-card {
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+  padding: 28px;
+  background: var(--ground-raised);
+  border: 1px solid var(--line);
+}
+
+.player-card dl {
+  margin: 0;
+}
+
+.player-card dl > div {
+  display: grid;
+  gap: 4px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.player-card dl > div:first-child {
+  padding-top: 0;
+}
+
+.player-card dt {
+  font: 16px/1.2 var(--ui);
+  color: var(--red);
+}
+
+.player-card dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.loadout-title,
+.achievements-title {
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.loadout-title {
+  margin: 36px 0 12px;
+}
+
+.loadout > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.loadout dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.chip {
+  padding: 2px 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+.stat-list {
+  display: grid;
+  gap: 44px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  flex-wrap: wrap;
+}
+
+.stat-head h3 {
+  font-size: 16px;
+}
+
+.stat-value {
+  font: 16px/1.2 var(--ui);
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Segmented meter. Lit segments switch on one after another once the
+   section has been reached; each segment's delay comes from --i. */
+.bar {
+  display: flex;
+  gap: 3px;
+  height: 20px;
+  margin-top: 14px;
+}
+
+.bar[data-small] {
+  gap: 2px;
+  height: 10px;
+  margin-top: 0;
+}
+
+.bar span {
+  flex: 1;
+  background: var(--line);
+}
+
+.stats[data-run] .bar span[data-lit] {
+  background: var(--green);
+  box-shadow: 0 0 10px rgb(61 255 122 / 0.35);
+  transition:
+    background-color 1ms linear calc(var(--i) * 24ms),
+    box-shadow 1ms linear calc(var(--i) * 24ms);
+}
+
+.stat-note {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.stat-parts {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat-parts li {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 16px;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.stat-part-value {
+  text-align: right;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.achievements-title {
+  margin: 72px 0 20px;
+}
+
+.achievements {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.achievement {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--ground-raised);
+  border: 1px solid var(--line);
+}
+
+.achievement-wide {
+  grid-column: 1 / -1;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+}
+
+.achievement h4 {
+  font: 16px/1.5 var(--pixel);
+  margin: 0;
+  color: var(--ink);
+}
+
+.achievement p {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.achievement-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--amber);
+}
+
+.pips {
+  display: flex;
+  gap: 4px;
+}
+
+.pips span {
+  width: 12px;
+  height: 12px;
+  background: var(--amber);
+}
+
+/* Achievements unlock after the meters fill: grey, a bright flash, then lit. */
+.stats[data-run] .achievement {
+  animation: unlock 420ms var(--ease-out) both;
+  animation-delay: calc(900ms + var(--d) * 110ms);
+}
+
+.stats[data-run] .pips span {
+  animation: pip 1ms linear both;
+  animation-delay: calc(1000ms + var(--d) * 110ms + var(--j) * 70ms);
+}
+
+@keyframes unlock {
+  0% {
+    opacity: 0.35;
+    filter: grayscale(1);
+  }
+  55% {
+    opacity: 1;
+    filter: grayscale(0) brightness(1.7);
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes pip {
+  from {
+    background: var(--line);
+  }
+}
+
+@media (max-width: 960px) {
+  .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .player-card {
+    position: static;
+    order: 2;
+  }
+
+  .achievements {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .achievement-wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .stat-parts li {
+    grid-template-columns: 1fr 40px;
+    gap: 6px 12px;
+  }
+
+  .stat-parts .bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .achievements-title {
+    margin-top: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats[data-run] .bar span[data-lit] {
+    transition: none;
+  }
+  .stats[data-run] .achievement,
+  .stats[data-run] .pips span {
+    animation: none;
   }
 }
 
@@ -527,15 +835,19 @@ main {
   }
 }
 
+/* The screen takes the games' own portrait shape; the info card sits beside it. */
 .select-panel {
   display: grid;
-  gap: 28px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
   min-width: 0;
 }
 
 .screen {
   position: relative;
-  aspect-ratio: 16 / 10;
+  height: clamp(380px, 62vh, 560px);
+  aspect-ratio: 301 / 362;
   overflow: hidden;
   background: #000;
   border-radius: 14px;
@@ -604,16 +916,27 @@ main {
 }
 
 .select-info {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px 40px;
+  display: grid;
+  justify-items: start;
+  gap: 28px;
+  padding-top: 8px;
 }
 
 .select-info p {
   max-width: 60ch;
   margin-top: 10px;
   color: var(--ink-dim);
+}
+
+@media (max-width: 1100px) {
+  .select-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .select-info {
+    padding-top: 0;
+  }
 }
 
 @media (max-width: 860px) {
@@ -651,13 +974,20 @@ main {
     display: none;
   }
 
+  .select-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
   .screen {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
     border-radius: 10px;
   }
 
   .select-info {
-    flex-direction: column;
-    align-items: flex-start;
+    padding-top: 0;
   }
 }
 
@@ -673,6 +1003,14 @@ main {
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
   gap: 48px;
   align-items: start;
+}
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  align-self: stretch;
 }
 
 .level-role {
@@ -694,14 +1032,11 @@ main {
   color: var(--amber);
 }
 
-.film {
-  min-width: 0;
-}
-
 .film-track {
   display: flex;
   gap: 12px;
-  height: clamp(300px, 48vh, 460px);
+  min-width: 0;
+  height: clamp(300px, 44vh, 420px);
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -766,9 +1101,19 @@ main {
 
 .film-controls {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 8px;
-  margin-top: 16px;
+}
+
+.film-count {
+  margin-right: auto;
+  font: 16px/1 var(--ui);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.film-count span {
+  color: var(--ink-dim);
 }
 
 @media (max-width: 860px) {
@@ -782,7 +1127,11 @@ main {
   }
 
   .film-track {
-    height: 340px;
+    height: 320px;
+  }
+
+  .level-info {
+    gap: 24px;
   }
 
   .film-frame-tiktok {

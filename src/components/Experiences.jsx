@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import TypewriterText from "./TypewriterText";
 import TikTokEmbed from "./TikTokEmbed";
 import yh1 from "../assets/experiences/yh-1.jpg";
@@ -67,27 +67,76 @@ function Arrow({ flip }) {
   );
 }
 
-function Filmstrip({ org, slides }) {
+function Level({ exp }) {
   const ref = useRef(null);
+  const [pos, setPos] = useState({ index: 0, atStart: true, atEnd: exp.slides.length < 2 });
 
-  const scrollBy = (dir) => {
+  // Track which frame sits at the left edge, and whether either end is reached.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const frames = [...el.children];
+      const left = el.scrollLeft;
+      let index = 0;
+      frames.forEach((f, i) => {
+        if (f.offsetLeft - el.offsetLeft <= left + 8) index = i;
+      });
+      const atEnd = left + el.clientWidth >= el.scrollWidth - 8;
+      setPos({ index: atEnd ? frames.length - 1 : index, atStart: left <= 8, atEnd });
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+    measure();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const step = (dir) => {
     const el = ref.current;
     if (!el) return;
     const frames = [...el.children];
-    const left = el.scrollLeft;
-    // Snap to the neighbouring frame rather than a fixed distance.
-    const target =
-      dir > 0
-        ? frames.find((f) => f.offsetLeft > left + 4)
-        : [...frames].reverse().find((f) => f.offsetLeft < left - 4);
+    const target = frames[Math.max(0, Math.min(frames.length - 1, pos.index + dir))];
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollTo({ left: target ? target.offsetLeft : dir > 0 ? el.scrollWidth : 0, behavior: reduce ? "auto" : "smooth" });
+    el.scrollTo({ left: target.offsetLeft - el.offsetLeft, behavior: reduce ? "auto" : "smooth" });
   };
 
+  const total = exp.slides.length;
+
   return (
-    <div className="film">
-      <div className="film-track" ref={ref} tabIndex={0} aria-label={`${org} photos and videos`}>
-        {slides.map((slide, i) => {
+    <article className="level">
+      <header className="level-info">
+        <div>
+          <h3>{exp.org}</h3>
+          <p className="level-role">{exp.role}</p>
+          <p className="level-subtitle">{exp.subtitle}</p>
+          <p className="level-score">{exp.score}</p>
+        </div>
+        {total > 1 && (
+          <div className="film-controls">
+            <span className="film-count" aria-hidden="true">
+              {String(pos.index + 1).padStart(2, "0")}
+              <span> / {String(total).padStart(2, "0")}</span>
+            </span>
+            <button type="button" className="icon-btn" onClick={() => step(-1)} disabled={pos.atStart} aria-label={`Previous ${exp.org} photo`}>
+              <Arrow flip />
+            </button>
+            <button type="button" className="icon-btn" onClick={() => step(1)} disabled={pos.atEnd} aria-label={`Next ${exp.org} photo`}>
+              <Arrow />
+            </button>
+          </div>
+        )}
+      </header>
+      <div className="film-track" ref={ref} tabIndex={0} aria-label={`${exp.org} photos and videos`}>
+        {exp.slides.map((slide, i) => {
           if (slide.type === "tiktok") {
             return (
               <div className="film-frame film-frame-tiktok" key={i}>
@@ -98,28 +147,18 @@ function Filmstrip({ org, slides }) {
           if (slide.type === "video") {
             return (
               <div className="film-frame" key={i} style={{ aspectRatio: `${slide.w} / ${slide.h}` }}>
-                <video src={slide.src} controls preload="metadata" playsInline aria-label={`${org} recap video`} />
+                <video src={slide.src} controls preload="metadata" playsInline aria-label={`${exp.org} recap video`} />
               </div>
             );
           }
           return (
             <div className="film-frame film-frame-photo" key={i} style={{ aspectRatio: `${slide.w} / ${slide.h}` }}>
-              <img src={slide.src} alt={`${org}, photo ${i + 1}`} loading="lazy" width={slide.w} height={slide.h} />
+              <img src={slide.src} alt={`${exp.org}, photo ${i + 1}`} loading="lazy" width={slide.w} height={slide.h} />
             </div>
           );
         })}
       </div>
-      {slides.length > 1 && (
-        <div className="film-controls">
-          <button type="button" className="icon-btn" onClick={() => scrollBy(-1)} aria-label={`Previous ${org} photo`}>
-            <Arrow flip />
-          </button>
-          <button type="button" className="icon-btn" onClick={() => scrollBy(1)} aria-label={`Next ${org} photo`}>
-            <Arrow />
-          </button>
-        </div>
-      )}
-    </div>
+    </article>
   );
 }
 
@@ -130,15 +169,7 @@ function Experiences() {
         <TypewriterText as="h2" id="experiences-title" text="Experience" speed={40} />
         <div className="levels">
           {experiences.map((exp) => (
-            <article className="level" key={exp.org}>
-              <header className="level-info">
-                <h3>{exp.org}</h3>
-                <p className="level-role">{exp.role}</p>
-                <p className="level-subtitle">{exp.subtitle}</p>
-                <p className="level-score">{exp.score}</p>
-              </header>
-              <Filmstrip org={exp.org} slides={exp.slides} />
-            </article>
+            <Level exp={exp} key={exp.org} />
           ))}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import Stats from "./components/Stats";
 import Projects from "./components/Projects";
 import Experiences from "./components/Experiences";
 import Contact from "./components/Contact";
@@ -12,8 +13,9 @@ function App() {
       <Navbar />
       <main>
         <Hero />
-        <Projects />
+        <Stats />
         <Experiences />
+        <Projects />
         <Contact />
       </main>
       <Footer />
