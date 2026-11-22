@@ -55,11 +55,24 @@ function Hero() {
   const visibleRef = useRef(true);
   const focusRef = useRef(true);
   const refocusStartRef = useRef(false);
+  const modeRef = useRef("demo");
   const [hud, setHud] = useState(() => ({ mode: "demo", score: 0, hi: readHi(), lives: 3 }));
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cancelled = false;
+
+    // A run can end (Esc, or Game over) while a keyboard player has focus on
+    // Quit, which unmounts with the mode change. This runs before React
+    // re-renders, so park focus on the section now and hand it to Play once
+    // the attract screen is back, rather than dropping it on <body>.
+    const parkFocus = () => {
+      const section = sectionRef.current;
+      const active = document.activeElement;
+      if (!section || !section.contains(active)) return;
+      refocusStartRef.current = true;
+      if (active !== section) section.focus({ preventScroll: true });
+    };
 
     const sync = () => {
       const g = gameRef.current;
@@ -79,6 +92,8 @@ function Hero() {
           fontFamily: FONT,
           hiScore: readHi(),
           onHud: (h) => {
+            if (modeRef.current === "play" && h.mode !== "play") parkFocus();
+            modeRef.current = h.mode;
             setHud(h);
             if (h.hi) writeHi(h.hi);
           },
@@ -146,7 +161,11 @@ function Hero() {
       // Only a fresh press on the attract screen starts a run: a Space still
       // held from the last one (auto-repeat) must not wipe the final score
       // while "Game over" is showing.
-      if (g.mode === "demo" && !e.repeat) g.play();
+      if (g.mode !== "demo" || e.repeat) return;
+      g.play();
+      // Space on a focused Play button: same as clicking it, focus moves to
+      // the section so it never sits on a button that is fading out.
+      if (active === startRef.current) sectionRef.current.focus({ preventScroll: true });
     };
 
     const onKeyUp = (e) => {
@@ -175,8 +194,8 @@ function Hero() {
     };
   }, []);
 
-  // After the Quit button is pressed it unmounts; hand focus back to Play
-  // (visible again once the mode is demo) instead of dropping it on <body>.
+  // When a run ends from the Quit button, Esc with focus in the hero, or Game
+  // over, hand focus back to Play (visible again once the mode is demo).
   useEffect(() => {
     if (hud.mode === "demo" && refocusStartRef.current) {
       refocusStartRef.current = false;

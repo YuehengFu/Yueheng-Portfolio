@@ -324,6 +324,17 @@ main {
   touch-action: none;
 }
 
+/* Taps on the screen are game input: no grey tap flash over the whole hero,
+   and touch-and-hold to fire never starts a text selection or callout. */
+.hero-canvas {
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-screen[data-mode="play"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* With WebGL, the CRT canvas shows the picture and the source canvas stays on
    top, invisible, to catch the pointer. */
 .hero-screen[data-crt] .hero-canvas {
@@ -453,11 +464,16 @@ main {
   visibility: hidden;
   transition: opacity 150ms var(--ease-out), visibility 0s linear 150ms;
 }
+/* While it fades, Play stops answering the pointer at once, so it never shows
+   a hover or press it can't act on and a click there reaches the game. */
+.hero-screen:not([data-mode="demo"]) .hero-actions .hero-start {
+  pointer-events: none;
+}
 
 /* In play, Play becomes a small Quit in the HUD's right cell, away from the
-   firing lane and from where a thumb steers. */
+   firing lane and from where a thumb steers. 44px keeps it a full tap target. */
 .hud .hero-quit {
-  min-height: 40px;
+  min-height: 44px;
   margin-top: 6px;
   padding: 0 16px;
   font-size: 14px;
