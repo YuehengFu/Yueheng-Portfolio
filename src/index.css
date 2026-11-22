@@ -28,6 +28,10 @@
   --ground-raised: #0c0f14;
   --line: #18211d;
   --line-strong: #2b4237;
+  /* Borders that mark a control (secondary and arrow buttons): 4.1:1 on the
+     ground, so the edge reads as something to press. --line-strong stays
+     for decorative rules and chips. */
+  --line-control: #4f7a63;
   --ink: #e4ede6;
   --ink-dim: #93a69a;
   --green: #3dff7a;
@@ -41,6 +45,10 @@
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* The one corner shape: a 4px stepped notch, like a sprite's rounded edge.
+     Every framed control and picture uses it; only the tube glass is smooth. */
+  --px-corner: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
 
   --nav-h: 56px;
   --gutter: clamp(16px, 4vw, 48px);
@@ -121,6 +129,13 @@ summary,
 :focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 3px;
+}
+
+/* A stepped clip cuts away anything drawn outside the box, outline included,
+   so on clipped controls the ring is drawn inside: a 2px box 5px in from the
+   edge, clear of the 4px corner notch. App.css adds each control's fill. */
+:is(.px-corner, .btn, .icon-btn, .select-item):focus-visible {
+  outline-offset: -7px;
 }
 
 #root {

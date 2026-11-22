@@ -49,13 +49,28 @@ main {
 
 /* ---------- Buttons ---------- */
 
-/* Stepped corners, like a sprite's rounded edge. */
+/* One corner shape for every framed control and picture (--px-corner in
+   index.css). Smooth radius is kept only for the tube glass (.screen). */
+.px-corner,
 .btn,
-.btn-secondary::before {
-  clip-path: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
+.btn-secondary::before,
+.icon-btn,
+.icon-btn::before,
+.select-item,
+.film-frame {
+  clip-path: var(--px-corner);
+}
+
+/* Arcade press: the button travels down 2px the instant it's pressed and
+   eases back up (120ms) on release. No scale, so the pixel label and the
+   stepped corners stay on whole pixels. */
+.btn,
+.icon-btn {
+  --release: 120ms;
 }
 
 .btn {
+  --lip: var(--green-deep);
   position: relative;
   isolation: isolate;
   display: inline-flex;
@@ -69,25 +84,36 @@ main {
   text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
-  transition: transform 160ms var(--ease-out), background-color 160ms ease, color 160ms ease;
+  transition: transform var(--release) var(--ease-out), box-shadow var(--release) var(--ease-out),
+    background-color 160ms ease, color 160ms ease;
 }
 
-.btn:active {
-  transform: scale(0.97);
+.btn:active,
+.icon-btn:active {
+  transform: translateY(2px);
+  transition-duration: 0ms;
 }
 
+/* The primary key has a 2px darker lip under its face, which the press
+   pushes away. */
 .btn-primary {
   background: var(--green);
   color: var(--ground);
+  box-shadow: inset 0 -2px 0 var(--lip);
+}
+
+.btn-primary:active {
+  box-shadow: inset 0 0 0 var(--lip);
 }
 
 /* A 2px stepped outline: the button is the border colour, ::before the fill. */
 .btn-secondary {
-  background: var(--line-strong);
+  background: var(--line-control);
   color: var(--ink);
 }
 
-.btn-secondary::before {
+.btn-secondary::before,
+.icon-btn::before {
   content: "";
   position: absolute;
   inset: 2px;
@@ -95,35 +121,24 @@ main {
   background: var(--ground);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .btn-primary:hover {
-    background: #8dffb2;
-  }
-  .btn-secondary:hover {
-    background: var(--green);
-    color: var(--green);
-  }
-}
-
+/* The arrow buttons are built the same way, so their corners step too. */
 .icon-btn {
+  position: relative;
+  isolation: isolate;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
-  background: none;
-  border: 1px solid var(--line-strong);
+  background: var(--line-control);
+  border: 0;
   color: var(--ink);
-  transition: transform 160ms var(--ease-out), border-color 160ms ease, color 160ms ease;
+  transition: transform var(--release) var(--ease-out), background-color 160ms ease, color 160ms ease;
 }
 
 .icon-btn svg {
   width: 8px;
   height: 14px;
-}
-
-.icon-btn:active {
-  transform: scale(0.95);
 }
 
 .icon-btn:disabled {
@@ -132,9 +147,37 @@ main {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: #8dffb2;
+  }
+  .btn-secondary:hover,
   .icon-btn:hover {
-    border-color: var(--green);
+    background: var(--green);
     color: var(--green);
+  }
+}
+
+/* Keyboard focus lights the control amber: the fill on the primary key, the
+   border and label on outlined ones, plus the inner 2px ring from index.css.
+   Declared after hover so focus wins when both apply. */
+.btn-primary:focus-visible {
+  --lip: #a8721c;
+  background: var(--amber);
+  outline-color: var(--ground);
+}
+
+.btn-secondary:focus-visible,
+.icon-btn:focus-visible {
+  background: var(--amber);
+  color: var(--amber);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The press still shows (it's feedback, not travel), but the release
+     snaps back instead of easing. */
+  .btn,
+  .icon-btn {
+    --release: 0ms;
   }
 }
 
@@ -473,8 +516,12 @@ main {
   transition: opacity 200ms var(--ease-out), visibility 0s;
 }
 .hero-actions .hero-start {
-  transition: opacity 200ms var(--ease-out), visibility 0s, transform 160ms var(--ease-out),
-    background-color 160ms ease, color 160ms ease;
+  transition: opacity 200ms var(--ease-out), visibility 0s, transform var(--release) var(--ease-out),
+    box-shadow var(--release) var(--ease-out), background-color 160ms ease, color 160ms ease;
+}
+/* Same instant press as every .btn; only the opacity fade keeps its time. */
+.hero-actions .hero-start:active {
+  transition-duration: 200ms, 0s, 0ms, 0ms, 0ms, 0ms;
 }
 .hero-screen:not([data-mode="demo"]) :is(.hero-tagline, .hero-hint, .hero-start) {
   opacity: 0;
@@ -865,11 +912,13 @@ main {
 .select-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--line);
 }
 
+/* Each row is clipped to the stepped corner, so its rules stop 4px short of
+   the ends. The first row carries the top rule so every line matches. */
 .select-item {
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: 8px;
   padding: 20px 16px 20px 36px;
@@ -880,6 +929,10 @@ main {
   border: 0;
   border-bottom: 1px solid var(--line);
   transition: color 160ms ease, background-color 160ms ease;
+}
+
+.select-item:first-child {
+  border-top: 1px solid var(--line);
 }
 
 .select-item::before {
@@ -1037,11 +1090,28 @@ main {
     scrollbar-width: none;
   }
 
-  .select-item {
+  /* Chips get a 1px stepped outline, built like the buttons: the chip is
+     the border colour and ::after is the fill, clipped to the same shape. */
+  .select-item,
+  .select-item:first-child {
     flex: 0 0 auto;
     max-width: 75vw;
     padding: 14px 16px 14px 32px;
-    border: 1px solid var(--line);
+    border: 0;
+    background: var(--line);
+  }
+
+  .select-item::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    background: var(--ground);
+    clip-path: var(--px-corner);
+  }
+
+  .select-item[aria-selected="true"]::after {
+    background: var(--ground-raised);
   }
 
   .select-item::before {
@@ -1050,7 +1120,7 @@ main {
   }
 
   .select-item[aria-selected="true"] {
-    border-color: var(--line-strong);
+    background: var(--line-strong);
   }
 
   .select-tags {
@@ -1137,7 +1207,6 @@ main {
   max-width: 100%;
   overflow: hidden;
   background: #000;
-  border-radius: 6px;
   scroll-snap-align: start;
 }
 
@@ -1331,6 +1400,7 @@ main {
   .hero-tagline,
   .hero-hint,
   .hero-actions .hero-start,
+  .hero-actions .hero-start:active,
   .hero-screen:not([data-mode="demo"]) :is(.hero-tagline, .hero-hint, .hero-start) {
     transition-duration: 0ms;
     transition-delay: 0ms;
