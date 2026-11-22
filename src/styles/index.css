@@ -1,0 +1,5 @@
+/* Fonts are declared in index.html, next to their preload, so both use the
+   same %BASE_URL%-relative address. */
+@import './tokens.css';
+@import './base.css';
+@import './page.css';

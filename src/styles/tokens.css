@@ -1,0 +1,63 @@
+/* One ink on one paper, no accent hue. The cat is drawn with the same two
+   colours (the scene reads --bg and --ink). */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0d0c;
+  --ink: #ecebe6;
+  --text: #c9c7c0;
+  --muted: #8b8881;
+  --rule: #34332f;
+  --mark: rgba(236, 235, 230, 0.075);
+  --dots: 0.25; /* the fallback drawing's shadow: 0.30, lightened as the cat rises */
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  --bg: #f3f1ec;
+  --ink: #1a1a18;
+  --text: #3a3935;
+  --muted: #6b6862;
+  --rule: #cfccc4;
+  --mark: rgba(26, 26, 24, 0.065);
+  --dots: 0.28;
+  color-scheme: light;
+}
+
+:root {
+  --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --fade: 240ms ease; /* theme colour changes; the scene eases alongside */
+
+  /* Layout, mirrored by src/scene/layout.js. */
+  --container: 1120px;
+  --gutter: 20px;
+  --column: 544px;
+  --bar: 56px;
+  --band: clamp(260px, 78vw, 400px); /* the cat's band above the intro, below 1024px */
+
+  /* Rhythm. */
+  --section-gap: 56px;
+  --label-gap: 20px;
+  --row-gap: 28px;
+  --body: 16px;
+  --leading: 1.6;
+  --h1: 26px;
+}
+@media (max-width: 360px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+@media (min-width: 640px) {
+  :root {
+    --section-gap: 72px;
+    --body: 15px;
+    --leading: 1.65;
+    --h1: 22px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 48px;
+  }
+}
