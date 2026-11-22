@@ -50,6 +50,28 @@
      Every framed control and picture uses it; only the tube glass is smooth. */
   --px-corner: polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px));
 
+  /* Spacing on the pixel face's 8px grid (4px only for hairline gaps).
+     Tight inside a group, generous between groups. */
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 32px;
+  --s5: 40px;
+  --s6: 48px;
+  --s7: 56px;
+  --s8: 64px;
+  --s9: 72px;
+  --s11: 88px;
+  --s12: 96px;
+  --s14: 112px;
+  --s16: 128px;
+  --s20: 160px;
+
+  /* Phosphor: only display type and the lit controls glow, never body text
+     or anything under 16px. */
+  --glow-ink: 0 0 6px rgb(228 237 230 / 0.35);
+  --glow-green: rgb(61 255 122 / 0.35);
+
   --nav-h: 56px;
   --gutter: clamp(16px, 4vw, 48px);
   --max: 1200px;
@@ -154,13 +176,14 @@ h3 {
   margin: 0;
 }
 
-/* The pixel face is drawn on an 8px grid, so its sizes stay on multiples of 8. */
+/* The pixel face is drawn on an 8px grid, so its sizes stay on multiples of
+   8. Roles: display 64 (Continue?), section 40, subsection 24, item 16. */
 h2 {
   font-size: 40px;
   line-height: 1.2;
   color: var(--ink);
   text-transform: uppercase;
-  margin-bottom: 56px;
+  margin-bottom: var(--s7);
 }
 
 h3 {
@@ -172,7 +195,7 @@ h3 {
 @media (max-width: 640px) {
   h2 {
     font-size: 24px;
-    margin-bottom: 40px;
+    margin-bottom: var(--s5);
   }
 }
 

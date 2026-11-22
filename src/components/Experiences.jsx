@@ -115,7 +115,7 @@ function Level({ exp }) {
     <article className="level">
       <header className="level-info">
         <div>
-          <h3>{exp.org}</h3>
+          <h3 className="level-org">{exp.org}</h3>
           <p className="level-role">{exp.role}</p>
           <p className="level-subtitle">{exp.subtitle}</p>
           <p className="level-score">{exp.score}</p>

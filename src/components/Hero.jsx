@@ -352,14 +352,18 @@ function Hero() {
             First-year Systems Design Engineering student at the University of Waterloo.
           </p>
           <div className="hero-actions">
-            <button
-              type="button"
-              ref={startRef}
-              className="btn btn-primary hero-start"
-              onClick={start}
-            >
-              Play
-            </button>
+            {/* The glow lives on a wrapper: the button's stepped clip-path
+                would cut off a glow drawn on the button itself. */}
+            <span className="hero-start-glow">
+              <button
+                type="button"
+                ref={startRef}
+                className="btn btn-primary hero-start"
+                onClick={start}
+              >
+                Play
+              </button>
+            </span>
             <p className="hero-hint">
               <span className="hint-fine">
                 Press <kbd>Space</kbd> to play. Shoot through my name; it grows back.

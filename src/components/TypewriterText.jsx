@@ -4,10 +4,25 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCursor = true, ...rest }) {
+// Types `text` out once it scrolls into view. The whole string is in the DOM
+// from the first frame: the untyped rest is laid out but transparent, so the
+// box never changes size (no layout jump), and search, crawlers and screen
+// readers always get the real text. The cursor is absolutely positioned at
+// its inline spot, so it takes no width. When typing ends the element gets
+// data-drawn, which App.css uses to draw the heading's rule.
+function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCursor = true, onDone, ...rest }) {
   const ref = useRef(null);
-  const [typed, setTyped] = useState(() => (prefersReducedMotion() ? text : ""));
-  const [done, setDone] = useState(() => prefersReducedMotion());
+  const [count, setCount] = useState(() => (prefersReducedMotion() ? text.length : 0));
+  const done = count >= text.length;
+  const onDoneRef = useRef(onDone);
+
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
+  useEffect(() => {
+    if (done) onDoneRef.current?.();
+  }, [done]);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -18,12 +33,8 @@ function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCurs
     let started = false;
 
     const typeChar = (i) => {
-      setTyped(text.slice(0, i));
-      if (i < text.length) {
-        timeouts.push(setTimeout(() => typeChar(i + 1), speed));
-      } else {
-        setDone(true);
-      }
+      setCount(i);
+      if (i < text.length) timeouts.push(setTimeout(() => typeChar(i + 1), speed));
     };
 
     const observer = new IntersectionObserver(
@@ -47,13 +58,21 @@ function TypewriterText({ text, speed = 8, as: Tag = "span", className, showCurs
     };
   }, [text, speed]);
 
-  // The full text is always exposed to assistive tech; the typing is visual only.
   return (
-    <Tag ref={ref} className={className} aria-label={text} {...rest}>
-      <span aria-hidden="true">
-        {typed}
-        {showCursor && !done && <span className="cursor">_</span>}
-      </span>
+    <Tag ref={ref} className={className} data-drawn={done || undefined} {...rest}>
+      {done ? (
+        <span className="tw">{text}</span>
+      ) : (
+        <span className="tw">
+          {text.slice(0, count)}
+          {showCursor && (
+            <span className="cursor" aria-hidden="true">
+              _
+            </span>
+          )}
+          <span className="tw-rest">{text.slice(count)}</span>
+        </span>
+      )}
     </Tag>
   );
 }

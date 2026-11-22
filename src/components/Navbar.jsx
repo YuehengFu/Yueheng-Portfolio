@@ -7,6 +7,10 @@ const LINKS = [
   { id: "contact", label: "Contact" },
 ];
 
+// Each section has one of the cabinet's overlay colours (its --band in
+// App.css). The nav's bottom edge takes the band of the section in view.
+const BANDS = { hero: "green", stats: "green", experiences: "amber", projects: "red", contact: "green" };
+
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [active, setActive] = useState("hero");
@@ -36,7 +40,7 @@ function Navbar() {
   const close = () => setIsOpen(false);
 
   return (
-    <header className="navbar">
+    <header className="navbar" data-band={BANDS[active] ?? "green"}>
       <div className="navbar-inner">
         <a href="#hero" className="logo" onClick={close}>
           Yueheng Fu
