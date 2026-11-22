@@ -111,6 +111,10 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
   function layout() {
     const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
     if (!cssW || !cssH) return;
+    // Mid-game, a resize (rotation, devtools, window drag) keeps the run as it
+    // is: same fleet, same damage to the name, shots rescaled, never a free
+    // new fleet.
+    const keep = mode === "play" && fleet && cols > 0 ? { cols, rows, P, name, fleet } : null;
     // Phones get a finer grid so the name's bricks stay distinct.
     P = cssW < 640 ? 2 : 4;
     cols = Math.ceil(cssW / P);
@@ -128,11 +132,12 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     const y = Math.round(rows * 0.5 - h / 2);
     const index = new Int32Array(r.w * r.h).fill(-1);
     r.cells.forEach(([cx, cy], i) => { index[cy * r.w + cx] = i; });
+    const sameGrid = keep && keep.name.gw === r.w && keep.name.gh === r.h && keep.name.bricks.length === r.cells.length;
     name = {
       x, y, s, w, h, gw: r.w, gh: r.h,
       bricks: r.cells,
-      alive: new Uint8Array(r.cells.length).fill(1),
-      flash: new Float32Array(r.cells.length),
+      alive: sameGrid ? keep.name.alive : new Uint8Array(r.cells.length).fill(1),
+      flash: sameGrid ? keep.name.flash : new Float32Array(r.cells.length),
       index,
     };
     // Lets the HTML copy sit right under the name at any size.
@@ -144,13 +149,57 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
       t: rand(0, Math.PI * 2),
     }));
 
+    const oldShipCenter = ship.x + ship.w / 2;
     ship.w = 11 * k;
     ship.h = 6 * k;
     ship.y = rows - ship.h - Math.round(rows * 0.06);
     if (!ship.x) ship.x = Math.round(cols / 2 - ship.w / 2);
-    ship.x = clamp(ship.x, 0, cols - ship.w);
 
+    if (keep) {
+      const sx = cols / keep.cols, sy = rows / keep.rows;
+      ship.x = oldShipCenter * sx - ship.w / 2;
+      if (ship.target != null) ship.target *= sx;
+      if (P !== keep.P) {
+        bullets = [];
+        bombs = [];
+      } else {
+        for (const b of bullets) { b.x *= sx; b.y *= sy; }
+        for (const m of bombs) { m.x *= sx; m.y *= sy; }
+      }
+      particles = [];
+      refitFleet(keep.fleet, sx);
+    } else {
+      spawnFleet(false);
+    }
+    ship.x = clamp(ship.x, 0, cols - ship.w);
+  }
+
+  // Lay the fleet out for the new grid, carrying over the aliens that are
+  // still alive. Each survivor maps to one slot (same band, same relative
+  // column); bands that no longer fit are dropped, so a resize can only ever
+  // remove targets, never add them.
+  function refitFleet(old, sx) {
+    const perRowOf = (f) => f.aliens.reduce((m, a) => Math.max(m, a.col + 1), 1);
+    const oldPerRow = perRowOf(old);
+    const { dir, frame, stepTimer, total } = old;
     spawnFleet(false);
+    const perRow = perRowOf(fleet);
+    const slots = new Map(fleet.aliens.map((a) => [`${a.band}:${a.col}`, a]));
+    for (const a of fleet.aliens) a.alive = false;
+    for (const a of old.aliens) {
+      if (!a.alive) continue;
+      const slot = slots.get(`${a.band}:${Math.floor((a.col * perRow) / oldPerRow)}`);
+      if (slot) slot.alive = true;
+    }
+    Object.assign(fleet, { dir, frame, stepTimer, total });
+    if (waveTimer <= 0 && !aliveAliens().length) waveTimer = 0.9;
+    // Keep the fleet's place in its sweep, then make sure it is on screen.
+    const live = fleet.aliens.filter((a) => a.alive);
+    if (live.length) {
+      const minX = Math.min(...live.map((a) => a.ox));
+      const maxX = Math.max(...live.map((a) => a.ox + fleet.sw));
+      fleet.x = clamp(Math.round(old.x * sx), 2 * k - minX, cols - 2 * k - maxX);
+    }
   }
 
   function spawnFleet(faster) {
@@ -167,7 +216,7 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
       const band = 3 - rowCount + r;
       for (let c = 0; c < perRow; c++) {
         aliens.push({
-          ox: c * (sw + gapX), oy: r * (sh + gapY),
+          ox: c * (sw + gapX), oy: r * (sh + gapY), col: c,
           kind: ROW_KINDS[band], band, points: ROW_POINTS[band], alive: true,
         });
       }
@@ -473,15 +522,22 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     raf = requestAnimationFrame(frame);
   }
 
+  // Held keys never see their keyup after alt-tab or a hidden tab, so drop
+  // all held input whenever the loop stops or the window loses focus.
+  function clearInput() {
+    input.left = input.right = input.fire = input.pointerFire = false;
+  }
+
   function pause() {
     running = false;
     cancelAnimationFrame(raf);
+    clearInput();
   }
 
   function toDemo() {
     mode = "demo";
     wave = 1;
-    input.left = input.right = input.fire = input.pointerFire = false;
+    clearInput();
     ship.target = null;
     bombs = [];
     emit();
@@ -521,6 +577,7 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     quit: toDemo,
     resume,
     pause,
+    clearInput,
     input,
     get mode() { return mode; },
     get hi() { return hi; },

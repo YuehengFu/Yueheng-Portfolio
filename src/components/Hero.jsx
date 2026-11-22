@@ -20,6 +20,20 @@ const writeHi = (hi) => {
 };
 const pad = (n) => String(n).padStart(6, "0");
 
+const touchOnly = () => window.matchMedia("(hover: none)").matches;
+
+// What the polite live region says for each mode. The hint that used to list
+// the controls fades out in play, so the announcement carries them instead.
+const statusFor = ({ mode, score }) => {
+  if (mode === "play") {
+    return touchOnly()
+      ? "Game started. 3 lives. Drag to steer, touch and hold to fire, use the Quit button to stop."
+      : "Game started. 3 lives. A and D or the arrow keys to move, Space to fire, Escape to quit.";
+  }
+  if (mode === "over") return `Game over. Final score ${score}.`;
+  return "";
+};
+
 const SHIP_PATH = SHIP.flatMap((row, y) =>
   [...row].map((c, x) => (c === "X" ? `M${x} ${y}h1v1h-1Z` : ""))
 ).join("");
@@ -36,9 +50,11 @@ function Hero() {
   const canvasRef = useRef(null);
   const crtRef = useRef(null);
   const sectionRef = useRef(null);
+  const startRef = useRef(null);
   const gameRef = useRef(null);
   const visibleRef = useRef(true);
   const focusRef = useRef(true);
+  const refocusStartRef = useRef(false);
   const [hud, setHud] = useState(() => ({ mode: "demo", score: 0, hi: readHi(), lives: 3 }));
 
   useEffect(() => {
@@ -49,7 +65,7 @@ function Hero() {
       const g = gameRef.current;
       if (!g) return;
       if (visibleRef.current && !document.hidden) g.resume();
-      else g.pause();
+      else g.pause(); // pause() also drops any held input
     };
 
     document.fonts
@@ -81,6 +97,11 @@ function Hero() {
     );
     io.observe(sectionRef.current);
     document.addEventListener("visibilitychange", sync);
+
+    // Alt-tab or a click in the address bar swallows the keyup, so a held
+    // key would keep the ship drifting and firing when the player comes back.
+    const onBlur = () => gameRef.current?.clearInput();
+    window.addEventListener("blur", onBlur);
 
     const typing = () => {
       const el = document.activeElement;
@@ -117,12 +138,15 @@ function Hero() {
       }
       // Space starts a game only while the hero has the screen and nothing
       // else on the page has focus, so it never hijacks normal scrolling.
+      if (e.code !== "Space" || !focusRef.current) return;
       const active = document.activeElement;
       const free = !active || active === document.body || sectionRef.current.contains(active);
-      if (e.code === "Space" && focusRef.current && free) {
-        e.preventDefault();
-        g.play();
-      }
+      if (!free) return;
+      e.preventDefault();
+      // Only a fresh press on the attract screen starts a run: a Space still
+      // held from the last one (auto-repeat) must not wipe the final score
+      // while "Game over" is showing.
+      if (g.mode === "demo" && !e.repeat) g.play();
     };
 
     const onKeyUp = (e) => {
@@ -131,6 +155,9 @@ function Hero() {
       if (e.code === "ArrowLeft" || e.code === "KeyA") g.input.left = false;
       if (e.code === "ArrowRight" || e.code === "KeyD") g.input.right = false;
       if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") g.input.fire = false;
+      // Firefox activates a focused button on Space keyup; never let the
+      // first shot of a run also press whatever button has focus.
+      if (e.code === "Space" && g.mode === "play") e.preventDefault();
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -140,12 +167,22 @@ function Hero() {
       cancelled = true;
       io.disconnect();
       document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("blur", onBlur);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       gameRef.current?.destroy();
       gameRef.current = null;
     };
   }, []);
+
+  // After the Quit button is pressed it unmounts; hand focus back to Play
+  // (visible again once the mode is demo) instead of dropping it on <body>.
+  useEffect(() => {
+    if (hud.mode === "demo" && refocusStartRef.current) {
+      refocusStartRef.current = false;
+      startRef.current?.focus({ preventScroll: true });
+    }
+  }, [hud.mode]);
 
   const localX = (e) => e.clientX - e.currentTarget.getBoundingClientRect().left;
 
@@ -157,6 +194,9 @@ function Hero() {
   const onPointerDown = (e) => {
     const g = gameRef.current;
     if (!g || g.mode !== "play" || (e.pointerType === "mouse" && e.button !== 0)) return;
+    // Capture keeps the drag steering even when the finger slides over the
+    // HUD or off the canvas; it ends by itself on pointerup.
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     g.aimAt(localX(e));
     g.input.pointerFire = true;
   };
@@ -165,23 +205,42 @@ function Hero() {
     if (gameRef.current) gameRef.current.input.pointerFire = false;
   };
 
-  // A click (not a scroll gesture) starts the game.
-  const onClick = () => {
-    const g = gameRef.current;
-    if (g && g.mode !== "play") g.play();
+  const onPointerLeave = (e) => {
+    if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) stopFire();
   };
 
-  const toggle = () => {
+  // A click (not a scroll gesture) starts the game, but only from the attract
+  // screen: a tap during "Game over" must not reset the score.
+  const onClick = () => {
     const g = gameRef.current;
-    if (!g) return;
-    if (g.mode === "play") g.quit();
-    else g.play();
+    if (g?.mode === "demo") g.play();
+  };
+
+  const start = (e) => {
+    const g = gameRef.current;
+    if (!g || g.mode !== "demo") return;
+    g.play();
+    // Move focus off the (now hidden) Play button onto the section so the
+    // first Space keyup can't re-activate a button.
+    e.currentTarget.blur();
+    sectionRef.current?.focus({ preventScroll: true });
+  };
+
+  const quit = () => {
+    refocusStartRef.current = true;
+    gameRef.current?.quit();
   };
 
   const playing = hud.mode === "play";
 
   return (
-    <section id="hero" className="hero" ref={sectionRef} aria-labelledby="hero-title">
+    <section
+      id="hero"
+      className="hero"
+      ref={sectionRef}
+      tabIndex={-1}
+      aria-labelledby="hero-title"
+    >
       <div className="hero-screen" data-mode={hud.mode}>
         <canvas ref={crtRef} className="hero-crt" aria-hidden="true" />
         <canvas
@@ -192,34 +251,50 @@ function Hero() {
           onPointerDown={onPointerDown}
           onPointerUp={stopFire}
           onPointerCancel={stopFire}
-          onPointerLeave={stopFire}
+          onPointerLeave={onPointerLeave}
           onClick={onClick}
         />
 
-        <div className="hud" aria-hidden="true">
-          <div className="hud-cell">
+        <div className="hud">
+          <div className="hud-cell" aria-hidden="true">
             <span className="hud-label">1UP</span>
             <span className="hud-value">{pad(hud.score)}</span>
           </div>
-          <div className="hud-cell hud-cell-center">
+          <div className="hud-cell hud-cell-center" aria-hidden="true">
             <span className="hud-label">HI-SCORE</span>
             <span className="hud-value">{pad(hud.hi)}</span>
           </div>
           <div className="hud-cell hud-cell-end">
-            <span className="hud-label">LIVES</span>
-            <span className="hud-lives">
-              {Array.from({ length: playing ? hud.lives : 3 }, (_, i) => (
+            <span className="hud-label" aria-hidden="true">
+              LIVES
+            </span>
+            <span className="hud-lives" aria-hidden="true">
+              {Array.from({ length: hud.mode === "demo" ? 3 : hud.lives }, (_, i) => (
                 <ShipIcon key={i} />
               ))}
             </span>
+            {playing && (
+              <button
+                type="button"
+                className="btn btn-secondary hero-quit"
+                onClick={quit}
+                aria-keyshortcuts="Escape"
+              >
+                Quit<span className="quit-key">&nbsp;(Esc)</span>
+              </button>
+            )}
           </div>
         </div>
 
         {hud.mode === "over" && (
-          <p className="hero-over" role="status">
+          <p className="hero-over" aria-hidden="true">
             Game over
           </p>
         )}
+
+        <p className="sr-only" role="status" aria-live="polite">
+          {statusFor(hud)}
+        </p>
 
         <div className="hero-copy">
           <h1 id="hero-title" className="sr-only">
@@ -229,23 +304,19 @@ function Hero() {
             First-year Systems Design Engineering student at the University of Waterloo.
           </p>
           <div className="hero-actions">
-            <button type="button" className="btn btn-primary hero-start" onClick={toggle}>
-              {playing ? "Quit game" : "Play"}
+            <button
+              type="button"
+              ref={startRef}
+              className="btn btn-primary hero-start"
+              onClick={start}
+            >
+              Play
             </button>
             <p className="hero-hint">
-              {playing ? (
-                <>
-                  <kbd>A</kbd>
-                  <kbd>D</kbd> or arrows to move, <kbd>Space</kbd> to fire, <kbd>Esc</kbd> to quit
-                </>
-              ) : (
-                <>
-                  <span className="hint-fine">
-                    Press <kbd>Space</kbd> to play. Shoot through my name; it grows back.
-                  </span>
-                  <span className="hint-touch">Tap the screen to play. Drag to steer.</span>
-                </>
-              )}
+              <span className="hint-fine">
+                Press <kbd>Space</kbd> to play. Shoot through my name; it grows back.
+              </span>
+              <span className="hint-touch">Tap the screen to play. Drag to steer.</span>
             </p>
           </div>
         </div>

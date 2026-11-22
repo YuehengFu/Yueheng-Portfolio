@@ -293,6 +293,11 @@ main {
   background: var(--ground);
 }
 
+/* Focus lands here programmatically when a run starts; no ring needed. */
+.hero:focus {
+  outline: none;
+}
+
 .hero-screen {
   position: absolute;
   inset: 0;
@@ -311,6 +316,12 @@ main {
   z-index: 1;
   image-rendering: pixelated;
   touch-action: pan-y;
+}
+
+/* While playing, a drag steers the ship instead of scrolling the page. Demo
+   keeps pan-y so the hero never traps scrolling. */
+.hero-screen[data-mode="play"] .hero-canvas {
+  touch-action: none;
 }
 
 /* With WebGL, the CRT canvas shows the picture and the source canvas stays on
@@ -425,6 +436,45 @@ main {
 .hero-hint {
   font-size: 15px;
   color: var(--ink-dim);
+}
+
+/* Play clears the lane between the name and the ship: the copy and the Play
+   button fade out (150ms) and come back a little slower (200ms). */
+.hero-tagline,
+.hero-hint {
+  transition: opacity 200ms var(--ease-out), visibility 0s;
+}
+.hero-actions .hero-start {
+  transition: opacity 200ms var(--ease-out), visibility 0s, transform 160ms var(--ease-out),
+    background-color 160ms ease, color 160ms ease;
+}
+.hero-screen:not([data-mode="demo"]) :is(.hero-tagline, .hero-hint, .hero-start) {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms var(--ease-out), visibility 0s linear 150ms;
+}
+
+/* In play, Play becomes a small Quit in the HUD's right cell, away from the
+   firing lane and from where a thumb steers. */
+.hud .hero-quit {
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 0 16px;
+  font-size: 14px;
+  pointer-events: auto;
+  animation: hud-in 150ms var(--ease-out);
+}
+
+@keyframes hud-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (hover: none) {
+  .quit-key {
+    display: none;
+  }
 }
 
 .hint-touch {
@@ -1245,8 +1295,16 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-tagline,
+  .hero-hint,
+  .hero-actions .hero-start,
+  .hero-screen:not([data-mode="demo"]) :is(.hero-tagline, .hero-hint, .hero-start) {
+    transition-duration: 0ms;
+    transition-delay: 0ms;
+  }
   .hero-canvas,
   .hero-crt,
+  .hud .hero-quit,
   .screen[data-tune] .screen-media,
   .screen[data-tune] .screen-empty {
     animation: none;
