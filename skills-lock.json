@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "note": "Design skills are gitignored; reinstall with: npx skills add <source> (or copy SKILL.md folders into .claude/skills/). three.js skills are vendored in .claude/skills/ under their MIT license.",
+  "skills": {
+    "impeccable": { "source": "pbakaus/impeccable", "sourceType": "github", "skillPath": ".agents/skills/impeccable/SKILL.md", "license": "Apache-2.0", "vendored": false },
+    "emil-design-eng": { "source": "emilkowalski/skill", "sourceType": "github", "skillPath": "skills/emil-design-eng/SKILL.md", "vendored": false },
+    "design-taste-frontend": { "source": "Leonxlnx/taste-skill", "sourceType": "github", "skillPath": "skills/taste-skill/SKILL.md", "license": "MIT", "vendored": false },
+    "threejs-*": { "source": "cloudai-x/threejs-skills", "sourceType": "github", "commit": "0e181866f095b5f06d005133876e926515390d95", "skillPath": "skills/<name>/SKILL.md", "license": "MIT", "vendored": true }
+  }
+}

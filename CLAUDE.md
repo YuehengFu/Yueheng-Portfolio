@@ -26,7 +26,13 @@ Pull content from the old portfolio (`src/components/*.jsx` in `YuehengFu/Yuehen
 - **Commits and pushes go under the owner's name only.** Never add a `Co-Authored-By: Claude` trailer or a "Generated with Claude Code" line.
 - Commit only when the owner asks, or as part of work they approved. Keep commits small and descriptive, and stage files by explicit path.
 - Verify every change with `npm run lint` and `npm run build`. Check visual changes with real screenshots at phone (390px, emulated) and desktop (1440px) widths, in both themes.
-- Design skills used by the owner: `impeccable`, `emil-design-eng` and `design-taste-frontend`. Install them into `.claude/skills/` if missing, from pbakaus/impeccable, emilkowalski/skill and Leonxlnx/taste-skill. For 3D work, also use a three.js / React Three Fiber skill (see `docs/design-brief.md`). Never run scripts bundled inside skills that download binaries.
+## Skills
+
+Load these skills before design or 3D work:
+
+- **three.js skills** (vendored in `.claude/skills/threejs-*`, MIT, from cloudai-x/threejs-skills): use `threejs-react-three-fiber`, `threejs-loaders`, `threejs-materials`, `threejs-lighting`, `threejs-performance` and `threejs-postprocessing` for the centrepiece.
+- **Design skills** (`impeccable`, `emil-design-eng`, `design-taste-frontend`): gitignored, so on a fresh clone they're missing. Reinstall them from the sources in `skills-lock.json`, e.g. `npx skills add pbakaus/impeccable`, `npx skills add emilkowalski/skill`, `npx skills add Leonxlnx/taste-skill`, or copy each skill folder into `.claude/skills/`.
+- Never run scripts bundled inside skills (impeccable's `scripts/` downloads a binary).
 
 ## Status
 

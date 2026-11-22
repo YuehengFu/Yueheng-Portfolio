@@ -7,3 +7,9 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Third-party design skills are installed locally, not redistributed (see skills-lock.json)
+.claude/skills/impeccable/
+.claude/skills/emil-design-eng/
+.claude/skills/design-taste-frontend/
+.claude/settings.local.json
