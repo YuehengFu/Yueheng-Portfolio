@@ -2,17 +2,56 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yueheng Fu</title>
     <meta name="description" content="Yueheng Fu, Systems Design Engineering student at the University of Waterloo. Projects, experience and a playable arcade hero." />
     <meta name="theme-color" content="#07080c" />
-    <title>Yueheng Fu</title>
+    <link rel="canonical" href="https://fuyueheng.com/" />
+
+    <!-- Icons from scripts/make-icons.mjs. SVG first; the PNGs cover
+         browsers that skip SVG icons and iOS home screens. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Link previews (LinkedIn, Slack, Discord, iMessage). og.png is a real
+         1200x630 capture of the CRT hero. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Yueheng Fu" />
+    <meta property="og:title" content="Yueheng Fu" />
+    <meta property="og:description" content="Yueheng Fu, Systems Design Engineering student at the University of Waterloo. Projects, experience and a playable arcade hero." />
+    <meta property="og:url" content="https://fuyueheng.com/" />
+    <meta property="og:image" content="https://fuyueheng.com/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="YUEHENG FU in green pixel bricks on a curved CRT screen, under a row of invaders, with a Play button and the player's ship below." />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="preload" href="/fonts/IBM_BIOS.woff" as="font" type="font/woff" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" />
+    <noscript>
+      <style>
+        .nojs { max-width: 40rem; margin: 0 auto; padding: 96px 16px; color: #e4ede6; font: 17px/1.6 'Share Tech Mono', ui-monospace, monospace; }
+        .nojs h1 { margin: 0 0 8px; font: 32px/1.2 'IBM BIOS', ui-monospace, monospace; color: #3dff7a; }
+        .nojs p { margin: 0 0 16px; color: #93a69a; }
+        .nojs a { display: inline-block; padding: 9px 0; color: #3dff7a; text-underline-offset: 3px; }
+      </style>
+    </noscript>
   </head>
   <body>
+    <noscript>
+      <main class="nojs">
+        <h1>Yueheng Fu</h1>
+        <p>Systems Design Engineering student at the University of Waterloo. The rest of this site, and its playable arcade hero, needs JavaScript.</p>
+        <p>
+          <a href="mailto:yueheng.fu@uwaterloo.ca">yueheng.fu@uwaterloo.ca</a><br />
+          <a href="https://github.com/YuehengFu" rel="noreferrer">github.com/YuehengFu</a>
+        </p>
+      </main>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

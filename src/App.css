@@ -399,6 +399,11 @@ main {
 .hero-screen[data-crt] .hero-canvas {
   animation: none;
 }
+/* After a lost WebGL context the picture swaps between tube and flat canvas
+   instantly: the screen already powered on once, so it never replays. */
+.hero-screen[data-crt-swap][data-on] :is(.hero-canvas, .hero-crt) {
+  animation: none;
+}
 
 @keyframes power-on {
   0% {

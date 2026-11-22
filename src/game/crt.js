@@ -2,6 +2,11 @@
 // barrel curvature, one scanline per game pixel row, phosphor bloom, a touch
 // of chromatic fringing and a vignette. Returns null when WebGL is missing so
 // the caller can fall back to showing the source canvas directly.
+//
+// The GPU can drop the context at any time (a phone backgrounding the tab, a
+// driver reset). onLost fires so the caller can show the 2D canvas instead;
+// every GL object is rebuilt when the browser hands the context back, and
+// onRestored fires so the caller can switch the tube back on.
 
 const VERT = `
 attribute vec2 a_pos;
@@ -28,6 +33,8 @@ vec2 curve(vec2 uv) {
 
 vec3 tap(vec2 uv) { return texture2D(u_tex, uv).rgb; }
 
+vec3 lit(vec2 uv) { return max(tap(uv) - u_bg, 0.0); }
+
 void main() {
   vec2 uv = curve(v_uv);
   if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -43,15 +50,20 @@ void main() {
     tap(uv - vec2(px.x * 0.3, 0.0)).b
   );
 
-  // Phosphor bloom from two rings of neighbours, subtracting the ground so
-  // only lit pixels glow.
-  vec3 glow = vec3(0.0);
-  for (int i = 0; i < 8; i++) {
-    float a = float(i) * 0.785398;
-    vec2 d = vec2(cos(a), sin(a));
-    glow += max(tap(uv + d * px * 1.5) - u_bg, 0.0) * 0.6;
-    glow += max(tap(uv + d * px * 3.5) - u_bg, 0.0) * 0.4;
-  }
+  // Phosphor bloom from one ring of 8 neighbours 1.5 game pixels out,
+  // subtracting the ground so only lit pixels glow. Each tap weighs 1.0, the
+  // same total per direction as the old two rings (0.6 + 0.4), so the glow is
+  // as bright for 11 texture reads a pixel instead of 19. At 2px the ring
+  // printed a hard second outline round each sprite; 1.5 keeps the old soft
+  // halo. Constant offsets: no cos/sin per pixel.
+  vec3 glow = lit(uv + vec2( 1.5,  0.0) * px)
+            + lit(uv + vec2( 1.06,  1.06) * px)
+            + lit(uv + vec2( 0.0,  1.5) * px)
+            + lit(uv + vec2(-1.06,  1.06) * px)
+            + lit(uv + vec2(-1.5,  0.0) * px)
+            + lit(uv + vec2(-1.06, -1.06) * px)
+            + lit(uv + vec2( 0.0, -1.5) * px)
+            + lit(uv + vec2( 1.06, -1.06) * px);
   col += glow * 0.09;
 
   // One scanline per game pixel row.
@@ -64,6 +76,14 @@ void main() {
 
   gl_FragColor = vec4(col, 1.0);
 }`;
+
+// On desktop one scanline is a game row of 4 CSS px, which a 1x backing
+// store already resolves; past 1.25 the extra fragments only heat the GPU (a
+// Retina laptop hero has ~2.5x fewer at 1.25 than at 2). Phones draw a game
+// row in 2 CSS px, where 1.25 leaves 2.5 device px per scanline and the
+// lines smear, so the cap rises just enough to keep 4 device px per row.
+const MAX_DPR = 1.25;
+const MIN_PX_PER_ROW = 4;
 
 function compile(gl, type, src) {
   const s = gl.createShader(type);
@@ -81,10 +101,9 @@ const hexToRgb = (hex) => {
   return m ? m.slice(1).map((h) => parseInt(h, 16) / 255) : [0.03, 0.03, 0.05];
 };
 
-export function createCrt(output, source, bgHex) {
-  const gl = output.getContext("webgl", { antialias: false, alpha: false, preserveDrawingBuffer: false });
-  if (!gl) return null;
-
+// Builds the program, quad and texture on a live context. Returns null if
+// any step fails (no shader support, or the context died mid-build).
+function build(gl) {
   const vs = compile(gl, gl.VERTEX_SHADER, VERT);
   const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
   if (!vs || !fs) return null;
@@ -92,7 +111,13 @@ export function createCrt(output, source, bgHex) {
   gl.attachShader(prog, vs);
   gl.attachShader(prog, fs);
   gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+  // The linked program keeps its own copy; the shader objects can go.
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    gl.deleteProgram(prog);
+    return null;
+  }
   gl.useProgram(prog);
 
   const buf = gl.createBuffer();
@@ -110,35 +135,72 @@ export function createCrt(output, source, bgHex) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-  const uSrc = gl.getUniformLocation(prog, "u_src");
-  const uBg = gl.getUniformLocation(prog, "u_bg");
+  return {
+    prog,
+    buf,
+    tex,
+    uSrc: gl.getUniformLocation(prog, "u_src"),
+    uBg: gl.getUniformLocation(prog, "u_bg"),
+  };
+}
+
+export function createCrt(output, source, bgHex, { onLost, onRestored } = {}) {
+  const gl = output.getContext("webgl", { antialias: false, alpha: false, preserveDrawingBuffer: false });
+  if (!gl || gl.isContextLost()) return null;
+
+  let res = build(gl);
+  if (!res) return null;
   let bg = hexToRgb(bgHex);
+
+  // preventDefault tells the browser we can rebuild, which is what makes it
+  // fire webglcontextrestored later.
+  const handleLost = (e) => {
+    e.preventDefault();
+    res = null;
+    onLost?.();
+  };
+  const handleRestored = () => {
+    res = build(gl);
+    // A failed rebuild leaves the 2D canvas showing, which is still a
+    // working hero.
+    if (res) onRestored?.();
+  };
+  output.addEventListener("webglcontextlost", handleLost);
+  output.addEventListener("webglcontextrestored", handleRestored);
 
   return {
     setBackground(hex) {
       bg = hexToRgb(hex);
     },
     render() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (!res || !source.width || !source.height) return;
+      const cssPerRow = output.clientHeight / source.height;
+      const cap = Math.max(MAX_DPR, MIN_PX_PER_ROW / cssPerRow);
+      const dpr = Math.min(window.devicePixelRatio || 1, cap);
       const w = Math.round(output.clientWidth * dpr);
       const h = Math.round(output.clientHeight * dpr);
-      if (!w || !h || !source.width) return;
+      if (!w || !h) return;
       if (output.width !== w || output.height !== h) {
         output.width = w;
         output.height = h;
       }
       gl.viewport(0, 0, w, h);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, source);
-      gl.uniform2f(uSrc, source.width, source.height);
-      gl.uniform3f(uBg, bg[0], bg[1], bg[2]);
+      gl.uniform2f(res.uSrc, source.width, source.height);
+      gl.uniform3f(res.uBg, bg[0], bg[1], bg[2]);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     },
     destroy() {
+      output.removeEventListener("webglcontextlost", handleLost);
+      output.removeEventListener("webglcontextrestored", handleRestored);
       // The context is left alive on purpose: a remount (StrictMode, hot
       // reload) asks the same canvas for it again.
-      gl.deleteTexture(tex);
-      gl.deleteBuffer(buf);
-      gl.deleteProgram(prog);
+      if (res) {
+        gl.deleteTexture(res.tex);
+        gl.deleteBuffer(res.buf);
+        gl.deleteProgram(res.prog);
+        res = null;
+      }
     },
   };
 }

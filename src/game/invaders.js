@@ -100,8 +100,23 @@ function rasterize(lines, family) {
 export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hiScore = 0, below = null }) {
   const ctx = canvas.getContext("2d");
   let pal = readPalette(canvas);
-  const crt = output ? createCrt(output, canvas, pal.bg) : null;
-  canvas.parentElement?.toggleAttribute("data-crt", !!crt);
+  const screen = canvas.parentElement;
+  // A lost WebGL context drops back to the 2D canvas (always drawn, under
+  // the tube) and a restored one switches the tube back on. data-crt-swap
+  // makes both swaps instant, so the power-on never replays mid-visit.
+  const crt = output
+    ? createCrt(output, canvas, pal.bg, {
+        onLost() {
+          screen?.setAttribute("data-crt-swap", "");
+          screen?.removeAttribute("data-crt");
+        },
+        onRestored() {
+          screen?.setAttribute("data-crt", "");
+          if (!running) present();
+        },
+      })
+    : null;
+  screen?.toggleAttribute("data-crt", !!crt);
 
   // Geometry, rebuilt on resize.
   let cols = 0, rows = 0, P = 4, k = 1;
