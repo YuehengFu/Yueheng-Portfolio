@@ -6,6 +6,7 @@
 export const WIDE = 1024 // px; at and above this the cat gets its own column
 export const BAR = 56 // the top bar's height
 export const PARALLAX = 0.7 // narrow screens: how fast the cat leaves with the page
+export const FADED = 120 // narrow screens: px of scroll after which the cat has half faded and stops answering the pointer
 
 const CONTAINER = 1120
 const GUTTER = 48
@@ -53,4 +54,14 @@ export const POSE = {
   restingYaw: -0.55, // a three-quarter view; also the still pose
   lift: 0.06, // how far the cat rises off its shadow after the draw-in
   edgeAngle: 20, // degrees between faces before their shared edge is drawn
+  headY: 0.15, // model heights above this are the head (the cat card sits beside it)
+  earY: 0.4, // and above this only the two ear tips; between the two is the face
+}
+
+// Wide screens: the right edge of the text column, which the cat card never
+// crosses. Narrow screens have no cat column, so there is no edge.
+export function textEdge(w) {
+  if (w < WIDE) return 0
+  const container = Math.min(CONTAINER, w - GUTTER * 2)
+  return (w - container) / 2 + COLUMN
 }

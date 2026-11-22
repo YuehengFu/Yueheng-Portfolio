@@ -25,6 +25,8 @@ const ROLL_RATE = 0.55
 const LEAN = { yaw: 0.5, pitch: 0.14, rate: 2.5 } // fine pointers only
 
 const COLOR_RATE = 14 // follows the page's 240 ms colour transition
+const HOVER_RATE = 18 // the pointed-at ink settles in about 150 ms
+const HOVER = { line: 0.5, hidden: 0.1, tone: 0.35 } // added at full hover
 const SHADOW = { dark: 0.3, light: 0.34 }
 const GUIDE = 0.1 // the dashed floor ellipse, wide screens only
 
@@ -57,6 +59,7 @@ export class CatRig {
     this.shadow = makeDotShadowMaterial()
 
     const faces = new THREE.Mesh(geometry, this.fill)
+    this.faces = faces
     const hiddenLines = new LineSegments2(this.lines, this.hidden)
     hiddenLines.computeLineDistances()
     hiddenLines.renderOrder = 1
@@ -95,6 +98,17 @@ export class CatRig {
 
     this.root = new THREE.Group()
     this.root.add(this.lift, this.floor, this.ring)
+
+    // Picking: a stand-in for the faces that never renders, with both sides
+    // hittable, so the test is the silhouette whatever the winding.
+    this.pickMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })
+    this.pick = new THREE.Mesh(geometry, this.pickMaterial)
+    this.pick.matrixAutoUpdate = false
+    this.raycaster = new THREE.Raycaster()
+    this.hits = []
+    this.ndc = new THREE.Vector2()
+    this.v = new THREE.Vector3()
+    this.hover = 0
 
     this.first = true
     this.t = 0 // motion clock: runs only while the cat is allowed to move
@@ -138,6 +152,62 @@ export class CatRig {
     camera.updateProjectionMatrix()
   }
 
+  // Is this canvas point (CSS px) on the cat as it stands right now? Called
+  // from pointer events, so it works when the loop is on demand or stopped:
+  // the matrices are refreshed from the current pose first.
+  hit(camera, x, y, width, height) {
+    if (!this.view) return false
+    this.root.updateMatrixWorld()
+    camera.updateMatrixWorld()
+    this.pick.matrixWorld.copy(this.faces.matrixWorld)
+    this.ndc.set((x / width) * 2 - 1, 1 - (y / height) * 2)
+    this.raycaster.setFromCamera(this.ndc, camera)
+    this.hits.length = 0
+    this.pick.raycast(this.raycaster, this.hits)
+    return this.hits.length > 0
+  }
+
+  // The cat's on-screen box, its head's box and its face's side points (CSS
+  // px), from the current pose: 1k vertex projections, run when the card opens.
+  outline(camera, width, height) {
+    if (!this.view) return null
+    this.root.updateMatrixWorld()
+    camera.updateMatrixWorld()
+    const pos = this.geometry.attributes.position
+    const m = this.faces.matrixWorld
+    const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity }
+    const head = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity, topX: 0 }
+    const face = { left: Infinity, leftY: 0, right: -Infinity, rightY: 0 }
+    for (let i = 0; i < pos.count; i++) {
+      const my = pos.getY(i)
+      const p = this.v.fromBufferAttribute(pos, i).applyMatrix4(m).project(camera)
+      const x = ((p.x + 1) / 2) * width
+      const y = ((1 - p.y) / 2) * height
+      box.left = Math.min(box.left, x)
+      box.right = Math.max(box.right, x)
+      box.top = Math.min(box.top, y)
+      box.bottom = Math.max(box.bottom, y)
+      if (my < POSE.headY) continue
+      head.left = Math.min(head.left, x)
+      head.right = Math.max(head.right, x)
+      head.bottom = Math.max(head.bottom, y)
+      if (y < head.top) {
+        head.top = y
+        head.topX = x
+      }
+      if (my >= POSE.earY) continue
+      if (x < face.left) {
+        face.left = x
+        face.leftY = y
+      }
+      if (x > face.right) {
+        face.right = x
+        face.rightY = y
+      }
+    }
+    return { box, head, face }
+  }
+
   // mode: 'run' (moving), 'hold' (paused: keep the pose), 'still' (reduced
   // motion: the resting three-quarter pose). Returns true while colours or
   // opacities are still easing, so an on-demand loop can ask for another frame.
@@ -167,6 +237,9 @@ export class CatRig {
     // On narrow screens the cat steps back once the text scrolls over it.
     const dimTarget = input.wide ? 1 : 1 - 0.9 * smoothstep(input.scroll, 24, 220)
     this.dim = damp(this.dim, dimTarget, 10, dt)
+    // Pointed at (or its card is open): the ink comes forward a little.
+    const hoverTarget = input.hover ? 1 : 0
+    this.hover = damp(this.hover, hoverTarget, HOVER_RATE, dt)
 
     // Entrance: the pen draws the edges, then shading and shadow settle in,
     // then the cat rises off the floor.
@@ -194,14 +267,16 @@ export class CatRig {
     this.lift.rotation.z = still ? 0 : Math.sin(t * ROLL_RATE) * ROLL
 
     // Ink.
+    const hover = this.hover
     this.front.color.copy(this.ink)
     this.front.opacity = this.dim
+    this.front.linewidth = 1.2 + HOVER.line * hover
     this.hidden.color.copy(this.ink)
-    this.hidden.opacity = 0.17 * settle * this.dim
+    this.hidden.opacity = (0.17 + HOVER.hidden * hover) * settle * this.dim
     const fu = this.fill.uniforms
     fu.uBg.value.copy(this.bg)
     fu.uInk.value.copy(this.ink)
-    fu.uTone.value = settle * this.dim
+    fu.uTone.value = settle * this.dim * (1 + HOVER.tone * hover)
     fu.uDpr.value = gl.getPixelRatio()
 
     this.ring.visible = input.wide
@@ -217,6 +292,7 @@ export class CatRig {
 
     return (
       Math.abs(this.dim - dimTarget) > 0.002 ||
+      Math.abs(this.hover - hoverTarget) > 0.002 ||
       Math.abs(this.shade - shadeTarget) > 0.001 ||
       !near(this.bg, colors.bg) ||
       !near(this.ink, colors.ink)
@@ -228,7 +304,7 @@ export class CatRig {
     this.lines.dispose()
     this.ringLines.dispose()
     this.floor.geometry.dispose()
-    for (const m of [this.front, this.hidden, this.guide, this.fill, this.shadow]) m.dispose()
+    for (const m of [this.front, this.hidden, this.guide, this.fill, this.shadow, this.pickMaterial]) m.dispose()
   }
 }
 
