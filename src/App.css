@@ -344,9 +344,13 @@ main {
   display: none;
 }
 
-/* The tube powers on once, from a bright line to a full picture. */
-.hero-canvas,
-.hero-crt {
+/* The tube stays dark until the first frame has been drawn (data-on), then
+   powers on once, from a bright line to a full picture. Waiting for the
+   picture means a cold first visit never sees the sweep over an empty tube. */
+.hero-screen:not([data-on]) :is(.hero-canvas, .hero-crt) {
+  visibility: hidden;
+}
+.hero-screen[data-on] :is(.hero-canvas, .hero-crt) {
   animation: power-on 560ms var(--ease-out) both;
 }
 .hero-screen[data-crt] .hero-canvas {
@@ -375,6 +379,19 @@ main {
   inset-inline: 0;
   padding-inline: max(var(--gutter), (100% - var(--max)) / 2);
   pointer-events: none;
+  opacity: 0;
+}
+
+/* The overlays follow the picture in rather than floating over a closed
+   tube: the HUD once the sweep has filled the screen (+300ms), the copy just
+   after (+420ms). Opacity only, so the h1 and Play stay in the a11y tree. */
+.hero-screen[data-on] .hud {
+  opacity: 1;
+  transition: opacity 150ms var(--ease-out) 300ms;
+}
+.hero-screen[data-on] .hero-copy {
+  opacity: 1;
+  transition: opacity 180ms var(--ease-out) 420ms;
 }
 
 .hud {
@@ -478,10 +495,10 @@ main {
   padding: 0 16px;
   font-size: 14px;
   pointer-events: auto;
-  animation: hud-in 150ms var(--ease-out);
+  animation: fade-in 150ms var(--ease-out);
 }
 
-@keyframes hud-in {
+@keyframes fade-in {
   from {
     opacity: 0;
   }
@@ -1318,8 +1335,17 @@ main {
     transition-duration: 0ms;
     transition-delay: 0ms;
   }
-  .hero-canvas,
-  .hero-crt,
+  /* Power-on: no line sweep or brightness flash. Picture, HUD and copy
+     arrive together in one 200ms fade. */
+  .hero-screen[data-on] :is(.hero-canvas, .hero-crt) {
+    animation: fade-in 200ms var(--ease-out) both;
+  }
+  .hero-screen[data-crt] .hero-canvas {
+    animation: none;
+  }
+  .hero-screen[data-on] :is(.hud, .hero-copy) {
+    transition: opacity 200ms var(--ease-out);
+  }
   .hud .hero-quit,
   .screen[data-tune] .screen-media,
   .screen[data-tune] .screen-empty {

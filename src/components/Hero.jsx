@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { mountGame, SHIP } from "../game/invaders";
 
 const HI_KEY = "yf-hiscore";
-const FONT = '"IBM BIOS", "Press Start 2P", monospace';
+const FONT = '"IBM BIOS", ui-monospace, monospace';
+// The name is rasterized from the pixel font, so the game waits for it, but
+// never longer than this: a slow or failed font load still gets a picture.
+const FONT_WAIT_MS = 1500;
 
 const readHi = () => {
   try {
@@ -51,12 +54,16 @@ function Hero() {
   const crtRef = useRef(null);
   const sectionRef = useRef(null);
   const startRef = useRef(null);
+  const copyRef = useRef(null);
   const gameRef = useRef(null);
   const visibleRef = useRef(true);
   const focusRef = useRef(true);
   const refocusStartRef = useRef(false);
   const modeRef = useRef("demo");
   const [hud, setHud] = useState(() => ({ mode: "demo", score: 0, hi: readHi(), lives: 3 }));
+  // The tube stays dark until the first frame has been drawn; only then does
+  // the power-on play, with the HUD and copy following it in.
+  const [on, setOn] = useState(false);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -81,16 +88,24 @@ function Hero() {
       else g.pause(); // pause() also drops any held input
     };
 
-    document.fonts
-      .load(`8px "IBM BIOS"`)
-      .catch(() => {})
-      .finally(() => {
-        if (cancelled || !canvasRef.current) return;
+    let fontTimer = 0;
+    Promise.race([
+      document.fonts.load(`8px "IBM BIOS"`).catch(() => {}),
+      new Promise((resolve) => {
+        fontTimer = setTimeout(resolve, FONT_WAIT_MS);
+      }),
+    ]).then(() => {
+      clearTimeout(fontTimer);
+      if (cancelled || !canvasRef.current) return;
+      try {
+        // mountGame lays out and presents the first frame before returning.
         gameRef.current = mountGame(canvasRef.current, {
           output: crtRef.current,
           reducedMotion,
           fontFamily: FONT,
           hiScore: readHi(),
+          // .hero-copy sits 32px under the name (App.css).
+          below: copyRef.current ? { el: copyRef.current, gap: 32 } : null,
           onHud: (h) => {
             if (modeRef.current === "play" && h.mode !== "play") parkFocus();
             modeRef.current = h.mode;
@@ -99,7 +114,20 @@ function Hero() {
           },
         });
         sync();
-      });
+        // Lost the race: redraw the name in the pixel face once it arrives.
+        if (!document.fonts.check(`8px "IBM BIOS"`)) {
+          document.fonts
+            .load(`8px "IBM BIOS"`)
+            .then((faces) => {
+              if (!cancelled && faces.length) gameRef.current?.refit();
+            })
+            .catch(() => {});
+        }
+      } finally {
+        // Even if the game failed to start, never leave the copy hidden.
+        setOn(true);
+      }
+    });
 
     // Pause the loop whenever the hero is off screen or the tab is hidden.
     const io = new IntersectionObserver(
@@ -184,6 +212,7 @@ function Hero() {
 
     return () => {
       cancelled = true;
+      clearTimeout(fontTimer);
       io.disconnect();
       document.removeEventListener("visibilitychange", sync);
       window.removeEventListener("blur", onBlur);
@@ -260,7 +289,7 @@ function Hero() {
       tabIndex={-1}
       aria-labelledby="hero-title"
     >
-      <div className="hero-screen" data-mode={hud.mode}>
+      <div className="hero-screen" data-mode={hud.mode} data-on={on ? "" : undefined}>
         <canvas ref={crtRef} className="hero-crt" aria-hidden="true" />
         <canvas
           ref={canvasRef}
@@ -315,7 +344,7 @@ function Hero() {
           {statusFor(hud)}
         </p>
 
-        <div className="hero-copy">
+        <div className="hero-copy" ref={copyRef}>
           <h1 id="hero-title" className="sr-only">
             Yueheng Fu
           </h1>

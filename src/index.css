@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+/* Share Tech Mono loads from a <link> in index.html, not a render-blocking
+   @import chain. The two pixel faces are self-hosted in public/fonts, and
+   IBM BIOS (the hero's name and HUD) is preloaded there too. */
 
 @font-face {
   font-family: 'IBM BIOS';
-  src: url('./assets/fonts/IBM_BIOS.woff') format('woff');
+  src: url('/fonts/IBM_BIOS.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -10,7 +12,7 @@
 
 @font-face {
   font-family: 'IBM CGAthin';
-  src: url('./assets/fonts/IBM_CGAthin_2y.woff') format('woff');
+  src: url('/fonts/IBM_CGAthin_2y.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -33,7 +35,7 @@
   --amber: #ffb43a;
   --red: #ff3d6e;
 
-  --pixel: 'IBM BIOS', 'Press Start 2P', ui-monospace, monospace;
+  --pixel: 'IBM BIOS', ui-monospace, monospace;
   --ui: 'IBM CGAthin', 'Share Tech Mono', ui-monospace, monospace;
   --body: 'Share Tech Mono', ui-monospace, Consolas, monospace;
 

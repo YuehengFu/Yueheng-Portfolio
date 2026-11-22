@@ -47,27 +47,40 @@ function readPalette(el) {
 
 // Rasterize the name with the page's pixel font, then read back which font
 // pixels are lit. Each lit pixel becomes one destructible brick.
+//
+// The face is an 8x8 bitmap font, so at 8px one font pixel is one canvas
+// pixel. Drawn at that size, canvas anti-aliasing leaves a half-lit fringe
+// between strokes one pixel apart, and a threshold on it bridges letters
+// (E + H became a closed box, so "YUEHENG" read as "YUDHDNG"). Instead draw
+// it SS times larger on whole-pixel coordinates and sample the centre of each
+// font pixel, which reads the exact bitmap.
 function rasterize(lines, family) {
-  const fs = 8;
+  const fs = 8, SS = 4, pad = 4, lineStep = 12;
   const c = document.createElement("canvas");
   const ctx = c.getContext("2d", { willReadFrequently: true });
-  ctx.font = `${fs}px ${family}`;
-  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
-  c.width = Math.ceil(widest) + 8;
-  c.height = lines.length * fs * 2 + 8;
-  ctx.font = `${fs}px ${family}`;
+  const font = `${fs * SS}px ${family}`;
+  ctx.font = font;
+  const widthOf = (l) => ctx.measureText(l).width / SS;
+  const widest = Math.max(...lines.map(widthOf));
+  const W = Math.ceil(widest) + pad * 2;
+  const H = lines.length * lineStep + pad * 2;
+  c.width = W * SS;
+  c.height = H * SS;
+  ctx.font = font;
   ctx.textBaseline = "top";
   ctx.fillStyle = "#fff";
   lines.forEach((line, i) => {
-    const w = ctx.measureText(line).width;
-    ctx.fillText(line, 4 + (widest - w) / 2, 4 + i * fs * 1.5);
+    const x = pad + Math.round((widest - widthOf(line)) / 2);
+    const y = pad + i * lineStep;
+    ctx.fillText(line, x * SS, y * SS);
   });
   const { data } = ctx.getImageData(0, 0, c.width, c.height);
+  const half = SS >> 1;
   const lit = [];
   let minX = Infinity, minY = Infinity, maxX = -1, maxY = -1;
-  for (let y = 0; y < c.height; y++) {
-    for (let x = 0; x < c.width; x++) {
-      if (data[(y * c.width + x) * 4 + 3] > 110) {
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (data[((y * SS + half) * c.width + x * SS + half) * 4 + 3] > 127) {
         lit.push([x, y]);
         minX = Math.min(minX, x); maxX = Math.max(maxX, x);
         minY = Math.min(minY, y); maxY = Math.max(maxY, y);
@@ -82,7 +95,9 @@ function rasterize(lines, family) {
   };
 }
 
-export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hiScore = 0 }) {
+// below: { el, gap } is the HTML copy hung under the name (gap is its CSS
+// offset from the name's bottom), so the name can keep it clear of the ship.
+export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hiScore = 0, below = null }) {
   const ctx = canvas.getContext("2d");
   let pal = readPalette(canvas);
   const crt = output ? createCrt(output, canvas, pal.bg) : null;
@@ -126,10 +141,23 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     // Name bricks.
     const lines = cols < 220 ? ["YUEHENG", "FU"] : ["YUEHENG FU"];
     const r = rasterize(lines, fontFamily);
-    const s = Math.max(1, Math.floor(Math.min((cols * 0.86) / r.w, (rows * 0.3) / r.h)));
+    // Phones may use more of the width: at P=2 a factor of .94 lifts the
+    // brick scale to 3 from about 358px up, which leaves room for the gap.
+    const fill = P === 2 ? 0.94 : 0.86;
+    let s = Math.max(1, Math.floor(Math.min((cols * fill) / r.w, (rows * 0.3) / r.h)));
+
+    // The name is centred unless the HTML copy hung under it would run into
+    // the ship; then it rides up. If that would squeeze the fleet below two
+    // bands (short phones), the name steps down a size first, never below 2.
+    const shipY = rows - 6 * k - Math.round(rows * 0.06);
+    const reserve = below ? Math.ceil((below.el.offsetHeight + below.gap + 24) / P) : 0;
+    const place = (sc) => Math.min(Math.round(rows * 0.5 - (r.h * sc) / 2), shipY - reserve - r.h * sc);
+    const fleetFloor = (bands) => fleetTop() + bands * 6 * k + (bands - 1) * 5 * k + 6 * k;
+    let y = place(s);
+    while (y < fleetFloor(2) && s > 2) y = place(--s);
+    y = Math.max(y, fleetFloor(1));
     const w = r.w * s, h = r.h * s;
     const x = Math.round((cols - w) / 2);
-    const y = Math.round(rows * 0.5 - h / 2);
     const index = new Int32Array(r.w * r.h).fill(-1);
     r.cells.forEach(([cx, cy], i) => { index[cy * r.w + cx] = i; });
     const sameGrid = keep && keep.name.gw === r.w && keep.name.gh === r.h && keep.name.bricks.length === r.cells.length;
@@ -202,12 +230,17 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     }
   }
 
+  // Where the fleet's first band sits (clear of the HUD).
+  function fleetTop() {
+    return Math.max(Math.round(rows * 0.13), 12 * k);
+  }
+
   function spawnFleet(faster) {
     const sw = 9 * k, sh = 6 * k;
     const gapX = 6 * k, gapY = 5 * k;
     const perRow = clamp(Math.floor((cols * 0.62) / (sw + gapX)), 4, 11);
     const fleetW = perRow * (sw + gapX) - gapX;
-    const top = Math.max(Math.round(rows * 0.13), 12 * k);
+    const top = fleetTop();
     // Keep the fleet clear of the name.
     const maxBottom = name.y - 6 * k;
     const rowCount = clamp(Math.floor((maxBottom - top + gapY) / (sh + gapY)), 1, 3);
@@ -452,8 +485,10 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     }
     ctx.globalAlpha = 1;
 
-    // Name bricks. With room to spare, leave a one-cell gap so the bricks read.
-    const gap = name.s >= 3 ? 1 : 0;
+    // Name bricks, with a one-cell gap so they read as separate bricks. Phones
+    // (P=2) always keep it, even at scale 2: without it the shader's bloom
+    // runs neighbouring bricks together and letters merge.
+    const gap = name.s >= 3 || (P === 2 && name.s === 2) ? 1 : 0;
     const size = name.s - gap;
     for (let i = 0; i < name.bricks.length; i++) {
       if (!name.alive[i]) continue;
@@ -561,13 +596,17 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     resume();
   }
 
-  const ro = new ResizeObserver(() => {
+  function refit() {
     pal = readPalette(canvas);
     crt?.setBackground(pal.bg);
     layout();
     if (!running) present();
-  });
+  }
+  const ro = new ResizeObserver(refit);
   ro.observe(canvas);
+  // The copy can reflow on its own (Share Tech Mono swapping in, a text
+  // zoom), which changes how much room the name must leave under it.
+  if (below) ro.observe(below.el);
   layout();
   present();
   emit();
@@ -583,6 +622,9 @@ export function mountGame(canvas, { output, onHud, reducedMotion, fontFamily, hi
     get hi() { return hi; },
     aimAt(cssX) { ship.target = cssX / P; },
     fire,
+    // Re-rasterize the name, e.g. when the pixel font lands after the game
+    // started with the fallback face.
+    refit,
     destroy() { pause(); ro.disconnect(); crt?.destroy(); },
   };
 }
