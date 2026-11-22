@@ -41,7 +41,7 @@ export default function CatStage({ paused, reduced }) {
   // Shared, mutable inputs the frame loop reads; React never re-renders for them.
   const inputRef = useRef(null)
   if (inputRef.current === null) {
-    inputRef.current = { px: 0, py: 0, scroll: window.scrollY, wide: window.innerWidth >= WIDE, lean: false }
+    inputRef.current = { px: 0, py: 0, scroll: window.scrollY, wide: window.innerWidth >= WIDE, lean: false, hover: false }
   }
   const colorsRef = useRef(null)
   if (colorsRef.current === null) {

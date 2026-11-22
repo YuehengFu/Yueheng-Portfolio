@@ -8,12 +8,14 @@ import Otherwise from './components/Otherwise.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
 import { hasWebGL, usePaused, useReducedMotion, useTheme } from './hooks.js'
+import { useCatCard } from './catCard.js'
 
 export default function App() {
   const [theme, toggleTheme] = useTheme()
   const [paused, togglePaused] = usePaused()
   const reduced = useReducedMotion()
   const [webgl] = useState(hasWebGL)
+  const { cardRef, creditRef, ...card } = useCatCard()
 
   return (
     <>
@@ -31,7 +33,7 @@ export default function App() {
           <Otherwise />
           <Contact />
         </main>
-        <Footer canPause={webgl && !reduced} paused={paused} onTogglePause={togglePaused} />
+        <Footer canPause={webgl && !reduced} paused={paused} onTogglePause={togglePaused} card={card} cardRef={cardRef} creditRef={creditRef} />
       </div>
     </>
   )
