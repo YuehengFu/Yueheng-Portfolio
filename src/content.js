@@ -16,7 +16,7 @@ export const GITHUB = 'https://github.com/YuehengFu'
 // keep the old portfolio's order after the dated ones.
 export const experience = [
   {
-    org: 'Magic Hour AI',
+    org: 'Magic Hour AI (YC W24)',
     role: 'applied machine learning intern',
     figure: 'oct 2026 – now',
     note: 'built an image outpainting tool that won 80% of head-to-head comparisons against the production expander.',
