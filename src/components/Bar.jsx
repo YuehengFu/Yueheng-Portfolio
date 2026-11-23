@@ -10,7 +10,7 @@ export default function Bar({ theme, onToggleTheme }) {
         <a className="nav-experience" href="#experience">
           experience
         </a>
-        <a href="#projects">projects</a>
+        <a href="#scrapbook">scrapbook</a>
         <a href="#contact">contact</a>
       </nav>
       <ThemeToggle theme={theme} onToggle={onToggleTheme} />

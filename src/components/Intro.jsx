@@ -1,18 +1,35 @@
-// The intro names the school, the current role and the three older orgs.
-// Every fact is from the old portfolio or the owner's approved resume entries.
+// The intro: a big name, the school, then one-line highlights, each with its
+// org in a chip. Every fact is from the old portfolio or the owner's
+// approved resume entries.
+const Chip = ({ children }) => <span className="chip">{children}</span>
+
 export default function Intro() {
   return (
     <section className="hero" aria-labelledby="hi">
       <h1 id="hi">hi, i&rsquo;m yueheng.</h1>
-      <p>
-        i&rsquo;m a first-year <span className="chip">Systems Design Engineering</span> student at the{' '}
-        <span className="chip">University of Waterloo</span>, in <span className="nw">co-op</span>. right now i&rsquo;m
-        an applied machine learning intern at <span className="chip">Magic Hour AI</span>{' '}<span className="nw">(YC W24)</span>.
+      <p className="hero-lede">
+        first-year <span className="chip">Systems Design Engineering</span> at the{' '}
+        <span className="chip">University of Waterloo</span>, in <span className="nw">co-op</span>.
       </p>
-      <p>
-        i founded YH Models, <span className="nw">co-chaired</span> the Markham Teen Arts Council, and was{' '}
-        <span className="nw">co-president</span> of one of Ontario&rsquo;s largest DECA chapters.
-      </p>
+      <ul className="highlights">
+        <li>
+          interning at <Chip>Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, building an
+          outpainting tool
+        </li>
+        <li>
+          co-president of one of Ontario&rsquo;s largest <Chip>DECA</Chip> chapters
+        </li>
+        <li>
+          <span className="nw">co-chaired</span> the <Chip>Markham Teen Arts Council</Chip>
+        </li>
+        <li>
+          founded <Chip>YH Models</Chip>, selling <span className="nw">3D-printed</span>{' '}
+          <span className="nw">low-poly</span> figurines, the cat included
+        </li>
+        <li>
+          wrote C++ for the robots at <Chip>Silver Owl Robotics</Chip>
+        </li>
+      </ul>
     </section>
   )
 }

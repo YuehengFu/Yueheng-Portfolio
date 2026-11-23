@@ -3,7 +3,8 @@ import Backdrop from './components/Backdrop.jsx'
 import Bar from './components/Bar.jsx'
 import Intro from './components/Intro.jsx'
 import Experience from './components/Experience.jsx'
-import Projects from './components/Projects.jsx'
+import Scrapbook from './components/Scrapbook.jsx'
+import Peek from './components/Peek.jsx'
 import Otherwise from './components/Otherwise.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
@@ -29,10 +30,11 @@ export default function App() {
         <main id="main" className="column" tabIndex={-1}>
           <Intro />
           <Experience />
-          <Projects />
+          <Scrapbook />
           <Otherwise />
           <Contact />
         </main>
+        <Peek reduced={reduced} />
         <Footer canPause={webgl && !reduced} paused={paused} onTogglePause={togglePaused} card={card} cardRef={cardRef} creditRef={creditRef} />
       </div>
     </>

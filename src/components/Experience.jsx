@@ -2,7 +2,11 @@ import Section from './Section.jsx'
 import Row from './Row.jsx'
 import Keep from './Keep.jsx'
 import { experience } from '../content.js'
+import { showPeek, hidePeek } from '../peek.js'
 
+// Every row has the same shape: org · role on the left, dates on the right,
+// then the note. Rows with photos show them by the pointer on hover (fine
+// pointers only; the same photos are in the scrapbook for everyone else).
 export default function Experience() {
   return (
     <Section id="experience" label="experience">
@@ -20,8 +24,12 @@ export default function Experience() {
                 </span>
               </>
             }
-            figure={e.figure}
+            figure={e.dates}
+            figureLabel="dates"
             note={e.note}
+            data-peek={e.peek ? '' : undefined}
+            onPointerEnter={e.peek ? (ev) => showPeek(e.peek, ev) : undefined}
+            onPointerLeave={e.peek ? hidePeek : undefined}
           />
         ))}
       </ul>
