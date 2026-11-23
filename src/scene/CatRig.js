@@ -27,6 +27,10 @@ const LEAN = { yaw: 0.5, pitch: 0.14, rate: 2.5 } // fine pointers only
 const COLOR_RATE = 14 // follows the page's 240 ms colour transition
 const HOVER_RATE = 18 // the pointed-at ink settles in about 150 ms
 const HOVER = { line: 0.5, hidden: 0.1, tone: 0.35 } // added at full hover
+// Pointed at, or its card open: the cat settles into its resting pose and
+// holds it, like a model posing for its caption, so the card's leader stays
+// on its nose. About 0.6 s to settle.
+const POSE_RATE = 5
 const SHADOW = { dark: 0.3, light: 0.34 }
 const GUIDE = 0.1 // the dashed floor ellipse, wide screens only
 
@@ -109,6 +113,8 @@ export class CatRig {
     this.ndc = new THREE.Vector2()
     this.v = new THREE.Vector3()
     this.hover = 0
+    this.pose = 0 // 0 moving freely, 1 holding the resting pose
+    this.rise = 0
 
     this.first = true
     this.t = 0 // motion clock: runs only while the cat is allowed to move
@@ -168,9 +174,15 @@ export class CatRig {
   }
 
   // The cat's on-screen box, its head's box and its face's side points (CSS
-  // px), from the current pose: 1k vertex projections, run when the card opens.
+  // px) in the resting pose it settles into while the card is open: 1k vertex
+  // projections, run when the card opens.
   outline(camera, width, height) {
     if (!this.view) return null
+    const saved = [this.spin.rotation.y, this.lift.position.y, this.lift.rotation.x, this.lift.rotation.z]
+    this.spin.rotation.y = POSE.restingYaw
+    this.lift.position.y = this.rise
+    this.lift.rotation.x = 0
+    this.lift.rotation.z = 0
     this.root.updateMatrixWorld()
     camera.updateMatrixWorld()
     const pos = this.geometry.attributes.position
@@ -205,6 +217,8 @@ export class CatRig {
         face.rightY = y
       }
     }
+    ;[this.spin.rotation.y, this.lift.position.y, this.lift.rotation.x, this.lift.rotation.z] = saved
+    this.root.updateMatrixWorld()
     return { box, head, face }
   }
 
@@ -240,6 +254,8 @@ export class CatRig {
     // Pointed at (or its card is open): the ink comes forward a little.
     const hoverTarget = input.hover ? 1 : 0
     this.hover = damp(this.hover, hoverTarget, HOVER_RATE, dt)
+    this.pose = damp(this.pose, hoverTarget, POSE_RATE, dt)
+    const free = 1 - this.pose // how much of the idle motion is left
 
     // Entrance: the pen draws the edges, then shading and shadow settle in,
     // then the cat rises off the floor.
@@ -247,24 +263,29 @@ export class CatRig {
     this.lines.instanceCount = Math.max(1, Math.ceil(easeOutCubic(p) * this.count))
     const settle = smoothstep(p, 0.45, 1)
     const rise = POSE.lift * easeOutQuart(clamp((this.te - LIFT_AT) / LIFT_FOR, 0, 1))
+    this.rise = rise
 
     // Idle: a limited sway, a slow bob above the shadow, a little roll.
     const t = this.t
     const still = mode === 'still'
-    const bob = still ? 0 : BOB * smoothstep(this.te, LIFT_AT, ENTERED + 1.5) * Math.sin(t * BOB_RATE)
-    const sway = still ? 0 : SWAY[0] * Math.sin(t * SWAY[1]) + SWAY[2] * Math.sin(t * SWAY[3] + SWAY[4])
+    const bob = still ? 0 : free * BOB * smoothstep(this.te, LIFT_AT, ENTERED + 1.5) * Math.sin(t * BOB_RATE)
+    const sway = still ? 0 : free * (SWAY[0] * Math.sin(t * SWAY[1]) + SWAY[2] * Math.sin(t * SWAY[3] + SWAY[4]))
     if (still) {
       this.yaw = 0
       this.pitch = 0
-    } else if (mode === 'run') {
-      this.yaw = damp(this.yaw, input.lean ? input.px * LEAN.yaw : 0, LEAN.rate, dt)
-      this.pitch = damp(this.pitch, input.lean ? input.py * LEAN.pitch : 0, LEAN.rate, dt)
+    } else {
+      // Paused, the lean holds unless the cat is posing for its card.
+      const lean = input.lean && !input.hover
+      if (mode === 'run' || input.hover) {
+        this.yaw = damp(this.yaw, lean ? input.px * LEAN.yaw : 0, LEAN.rate, dt)
+        this.pitch = damp(this.pitch, lean ? input.py * LEAN.pitch : 0, LEAN.rate, dt)
+      }
     }
     const height = rise + bob
     this.spin.rotation.y = POSE.restingYaw + sway + this.yaw
     this.lift.position.y = height
     this.lift.rotation.x = this.pitch
-    this.lift.rotation.z = still ? 0 : Math.sin(t * ROLL_RATE) * ROLL
+    this.lift.rotation.z = still ? 0 : free * Math.sin(t * ROLL_RATE) * ROLL
 
     // Ink.
     const hover = this.hover
@@ -293,6 +314,8 @@ export class CatRig {
     return (
       Math.abs(this.dim - dimTarget) > 0.002 ||
       Math.abs(this.hover - hoverTarget) > 0.002 ||
+      Math.abs(this.pose - hoverTarget) > 0.002 ||
+      (input.hover && Math.abs(this.yaw) + Math.abs(this.pitch) > 0.002) ||
       Math.abs(this.shade - shadeTarget) > 0.001 ||
       !near(this.bg, colors.bg) ||
       !near(this.ink, colors.ink)

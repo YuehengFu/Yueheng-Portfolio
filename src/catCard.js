@@ -86,7 +86,7 @@ export function useCatCard() {
   const [card, setCard] = useState({ open: false, source: null, place: null, instant: false })
   const cardRef = useRef(null)
   const creditRef = useRef(null)
-  const live = useRef({ open: false, source: null, place: null, hot: false, openT: 0, closeT: 0, closedAt: -1e9 })
+  const live = useRef({ open: false, source: null, place: null, hot: false, muted: false, openT: 0, closeT: 0, closedAt: -1e9 })
 
   const setHot = useCallback((hot) => {
     const s = live.current
@@ -131,6 +131,7 @@ export function useCatCard() {
     if (shape) {
       place = besideCat(shape, w, h, vw, vh)
       place.follow = vw >= WIDE ? 0 : PARALLAX // the cat leaves phones at PARALLAX speed
+      place.box = shape.box
     } else if (source === 'button' && creditRef.current) {
       const b = creditRef.current.getBoundingClientRect()
       const line = creditRef.current.parentElement.getBoundingClientRect()
@@ -158,13 +159,29 @@ export function useCatCard() {
     const tap = { id: -1, x: 0, y: 0, t: 0 }
     let last = null // the mouse's last position, to re-test after a scroll
 
+    // Inside the cat's resting outline: while its card is open the cat settles
+    // into that pose, so the silhouette moves under a still pointer. Within
+    // this box the card stays put rather than flickering shut.
+    const nearCat = (x, y) => {
+      const b = s.place?.box
+      if (!b) return false
+      const dy = s.place.follow ? (window.scrollY - s.place.scroll) * s.place.follow : 0
+      return x >= b.left && x <= b.right && y >= b.top - dy && y <= b.bottom - dy
+    }
+
     const test = (target, x, y) => {
       const el = cardRef.current
       const onCard = Boolean(el && target instanceof Node && el.contains(target))
       const onCat = !onCard && isGround(target) && Boolean(cat?.hit(x, y))
+      const held = s.open && s.source === 'hover' && !onCard && isGround(target) && nearCat(x, y)
+      // After Escape, the card stays shut until the pointer leaves the cat.
+      if (s.muted) {
+        if (onCat || held) return setHot(onCat)
+        s.muted = false
+      }
       setHot(onCat)
       if (s.source && s.source !== 'hover') return
-      if (onCat || onCard) {
+      if (onCat || onCard || held) {
         clearTimeout(s.closeT)
         s.closeT = 0
         if (!s.open && onCat && !s.openT) {
@@ -208,6 +225,7 @@ export function useCatCard() {
       if (el?.contains(e.target) || creditRef.current?.contains(e.target)) return
       const onCat = isGround(e.target) && Boolean(cat?.hit(e.clientX, e.clientY))
       if (onCat) {
+        s.muted = false
         // A tap (or click) on the cat pins the card, or closes a pinned one.
         if (s.open && s.source !== 'hover') hide()
         else show(e.pointerType === 'mouse' ? 'click' : 'tap', s.open)
@@ -220,6 +238,7 @@ export function useCatCard() {
     const onKey = (e) => {
       if (e.key !== 'Escape' || !s.open) return
       const inside = cardRef.current?.contains(document.activeElement)
+      if (s.source === 'hover') s.muted = true
       hide()
       if (inside || s.source === 'button') creditRef.current?.focus()
     }
