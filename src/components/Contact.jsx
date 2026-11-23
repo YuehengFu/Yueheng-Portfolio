@@ -1,64 +1,70 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react'
+import Section from './Section.jsx'
+import Arrow from './Arrow.jsx'
+import { EMAIL, GITHUB } from '../content.js'
 
-const START = 9;
-
-function Contact() {
-  const ref = useRef(null);
-  const [count, setCount] = useState(START);
-
-  // Arcade continue countdown: counts down while the section is on screen
-  // and resets when you leave, like walking back up to the cabinet.
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = ref.current;
-    let timer;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        clearInterval(timer);
-        if (!entry.isIntersecting) {
-          setCount(START);
-          return;
-        }
-        timer = setInterval(() => {
-          setCount((c) => {
-            if (c <= 1) clearInterval(timer);
-            return Math.max(0, c - 1);
-          });
-        }, 1000);
-      },
-      { threshold: 0.6 }
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      clearInterval(timer);
-    };
-  }, []);
-
-  return (
-    <section id="contact" className="section contact" ref={ref} aria-labelledby="contact-title">
-      <div className="wrap contact-inner">
-        <h2 id="contact-title" className="contact-title">
-          Continue?
-          <span className="contact-count" aria-hidden="true">
-            {count}
-          </span>
-        </h2>
-        <p className="contact-lede">
-          Feel free to reach out by email or find me on GitHub.
-        </p>
-        <div className="contact-links">
-          <a href="mailto:yueheng.fu@uwaterloo.ca" className="btn btn-primary">
-            Email me
-          </a>
-          <a href="https://github.com/YuehengFu" className="btn btn-secondary" target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-        </div>
-        <p className="contact-email">yueheng.fu@uwaterloo.ca</p>
-      </div>
-    </section>
-  );
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    // Older browsers or an insecure context: the textarea route.
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.cssText = 'position:fixed;opacity:0;pointer-events:none'
+    document.body.append(area)
+    area.select()
+    try {
+      return document.execCommand('copy')
+    } catch {
+      return false
+    } finally {
+      area.remove()
+    }
+  }
 }
 
-export default Contact;
+function CopyEmail() {
+  const [state, setState] = useState('idle') // idle | copied | failed
+  const timer = useRef(0)
+  useEffect(() => () => clearTimeout(timer.current), [])
+
+  const copy = async () => {
+    const ok = await copyText(EMAIL)
+    setState(ok ? 'copied' : 'failed')
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setState('idle'), 1600)
+  }
+
+  return (
+    <>
+      <button type="button" className="copy" onClick={copy} data-state={state}>
+        {state === 'copied' ? 'copied' : 'copy'}
+        <span className="sr-only"> email address</span>
+      </button>
+      <span className="sr-only" aria-live="polite">
+        {state === 'copied' ? 'email address copied' : state === 'failed' ? `couldn't copy. the address is ${EMAIL}` : ''}
+      </span>
+    </>
+  )
+}
+
+export default function Contact() {
+  return (
+    <Section id="contact" label="contact">
+      <p>reach out by email, or find me on github.</p>
+      <p className="links">
+        <span className="email">
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <CopyEmail />
+        </span>
+        <a href={GITHUB} target="_blank" rel="noreferrer">
+          github
+          <Arrow />
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </p>
+    </Section>
+  )
+}

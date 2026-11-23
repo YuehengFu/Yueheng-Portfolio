@@ -1,8 +1,17 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
-  base: '/',
   plugins: [react()],
+  // Relative asset URLs: the same build works at
+  // https://fuyueheng.com (a custom domain's root) and under a subpath.
+  // Code that fetches files (the model) prefixes import.meta.env.BASE_URL.
+  base: './',
+  build: {
+    // The scene is one lazy chunk: three.js + @react-three/fiber + the cat,
+    // about 960 kB raw / 256 kB gzipped. It loads after the text has painted
+    // and never blocks it, so the 500 kB default only warns about something
+    // known. 1000 kB still flags a real regression (another big dependency).
+    chunkSizeWarningLimit: 1000,
+  },
 })

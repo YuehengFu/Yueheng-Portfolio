@@ -1,16 +1,22 @@
-# React + Vite
+# Yueheng-Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Live at https://fuyueheng.com. The previous arcade-style site is kept on the `arcade` branch.
 
-Currently, two official plugins are available:
+Personal website for Yueheng Fu: a minimal, text-first page with one centrepiece, a low-poly cat (`public/models/meowmeow.obj`, a YH Models original) drawn in the page's own ink and floating behind the text.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Built with Vite, React and three.js (@react-three/fiber).
 
-## React Compiler
+```sh
+npm install
+npm run dev        # local dev server
+npm run lint
+npm run build      # static site in dist/
+npm run fallback   # regenerate the no-WebGL drawing after changing the model or pose
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/content.js`: all the copy.
+- `src/components/`: the page sections.
+- `src/scene/`: the cat. `layout.js` places it, `CatRig.js` draws and moves it, and `CatStage.jsx` owns the canvas and decides when it renders.
+- `src/styles/`: tokens, base and page CSS.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`.

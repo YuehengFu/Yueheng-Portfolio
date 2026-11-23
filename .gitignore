@@ -1,24 +1,15 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
 *.local
-
-# Editor directories and files
+*.log
+.DS_Store
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Third-party design skills are installed locally, not redistributed (see skills-lock.json)
+.claude/skills/impeccable/
+.claude/skills/emil-design-eng/
+.claude/skills/design-taste-frontend/
+.claude/settings.local.json

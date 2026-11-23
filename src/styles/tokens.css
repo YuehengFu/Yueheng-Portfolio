@@ -1,0 +1,77 @@
+/* One ink on one paper. The cat is drawn with the same two colours (the scene
+   reads --bg and --ink), washed in five soft tints, one per org, which also
+   colour the org chips so each name is easy to find again. Photos join in
+   black and white, and take on their colour only when someone reaches for one. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0d0c;
+  --ink: #ecebe6;
+  --text: #c9c7c0;
+  --muted: #8b8881;
+  --rule: #34332f;
+  --mark: rgba(236, 235, 230, 0.075);
+  --dots: 0.25; /* the fallback drawing's shadow: 0.30, lightened as the cat rises */
+  --tint-violet: rgba(167, 139, 250, 0.2);
+  --tint-amber: rgba(251, 191, 36, 0.17);
+  --tint-rose: rgba(244, 114, 182, 0.18);
+  --tint-sky: rgba(96, 165, 250, 0.2);
+  --tint-mint: rgba(52, 211, 153, 0.17);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 22px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  --bg: #f3f1ec;
+  --ink: #1a1a18;
+  --text: #3a3935;
+  --muted: #6b6862;
+  --rule: #cfccc4;
+  --mark: rgba(26, 26, 24, 0.065);
+  --dots: 0.28;
+  --tint-violet: rgba(124, 58, 237, 0.13);
+  --tint-amber: rgba(217, 119, 6, 0.16);
+  --tint-rose: rgba(219, 39, 119, 0.12);
+  --tint-sky: rgba(37, 99, 235, 0.12);
+  --tint-mint: rgba(5, 150, 105, 0.13);
+  --shadow: 0 1px 2px rgba(40, 30, 20, 0.08), 0 8px 20px rgba(40, 30, 20, 0.08);
+  color-scheme: light;
+}
+
+:root {
+  --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --fade: 240ms ease; /* theme colour changes; the scene eases alongside */
+
+  /* Layout, mirrored by src/scene/layout.js. */
+  --container: 1120px;
+  --gutter: 20px;
+  --column: 544px;
+  --bar: 56px;
+  --band: clamp(260px, 78vw, 400px); /* the cat's band above the intro, below 1024px */
+
+  /* Rhythm. */
+  --section-gap: 56px;
+  --label-gap: 20px;
+  --row-gap: 28px;
+  --body: 16px;
+  --leading: 1.6;
+  --h1: 34px;
+}
+@media (max-width: 360px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+@media (min-width: 640px) {
+  :root {
+    --section-gap: 72px;
+    --body: 15px;
+    --leading: 1.65;
+    --h1: 44px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 48px;
+  }
+}

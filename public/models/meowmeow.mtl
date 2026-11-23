@@ -1,0 +1,12 @@
+# Blender MTL File: 'meowmeow.blend'
+# Material Count: 1
+
+newmtl Material
+Ns 23.671020
+Ka 0.480315 0.480315 0.480315
+Kd 0.554298 0.554298 0.554298
+Ks 0.711009 0.711009 0.711009
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
