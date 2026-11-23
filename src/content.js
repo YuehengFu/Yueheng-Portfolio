@@ -31,17 +31,19 @@ export const photos = {
   mtacSolstice: { src: mtacSolstice, w: 720, h: 406, alt: 'a poster for Solstice 2025 over a photo of the event' },
 }
 
-// Newest first by end date (ties: the later start first). `peek` lists the
-// photos that float by the pointer on hover.
+// Newest first by end date (ties: the later start first). `tint` colours the
+// org's chip; `peek` lists the photos that float by the pointer on hover.
 export const experience = [
   {
     org: 'Magic Hour AI (YC W24)',
+    tint: 'violet',
     role: 'applied machine learning intern',
     dates: 'oct 2026 – now',
     note: 'built an image outpainting tool that won 80% of head-to-head comparisons against the production expander.',
   },
   {
     org: 'DECA PETHS Chapter',
+    tint: 'sky',
     role: 'co-president',
     dates: 'may 2025 – jun 2026',
     note: "led one of Ontario's largest DECA chapters, with 200+ members: 134 regional and 106 provincial awards.",
@@ -49,6 +51,7 @@ export const experience = [
   },
   {
     org: 'Markham Teen Arts Council',
+    tint: 'rose',
     role: 'co-chair',
     dates: 'sep 2024 – jun 2026',
     note: 'youth division of the Markham Arts Council. organized fundraisers and events across York Region: $8,000+ revenue across two years.',
@@ -56,6 +59,7 @@ export const experience = [
   },
   {
     org: 'YH Models',
+    tint: 'amber',
     role: 'founder & product designer',
     dates: 'jun 2024 – feb 2026',
     note: 'original 3D-printed low-poly figurines, designed and sold online, with a $3,000 grant from the city.',
@@ -63,6 +67,7 @@ export const experience = [
   },
   {
     org: 'Silver Owl Robotics',
+    tint: 'mint',
     role: 'software engineer',
     dates: 'may 2024 – may 2025',
     note: 'optimised a C++ PID movement control system, raising autonomous speeds up to 15%.',

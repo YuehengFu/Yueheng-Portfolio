@@ -16,7 +16,7 @@ export default function Experience() {
             key={e.org}
             head={
               <>
-                <span className="org">{e.org}</span>
+                <span className={`org org-${e.tint}`}>{e.org}</span>
                 <span className="role">
                   <span aria-hidden="true"> · </span>
                   <span className="sr-only">, </span>

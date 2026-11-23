@@ -190,10 +190,30 @@ h1 {
   font-family: var(--mono);
 }
 
+.chip-violet,
+.org-violet {
+  --chip: var(--tint-violet);
+}
+.chip-amber,
+.org-amber {
+  --chip: var(--tint-amber);
+}
+.chip-rose,
+.org-rose {
+  --chip: var(--tint-rose);
+}
+.chip-sky,
+.org-sky {
+  --chip: var(--tint-sky);
+}
+.chip-mint,
+.org-mint {
+  --chip: var(--tint-mint);
+}
 .chip {
   padding: 1px 5px;
   border-radius: 3px;
-  background: var(--mark);
+  background: var(--chip, var(--mark));
   color: var(--ink);
   white-space: nowrap;
   -webkit-box-decoration-break: clone;
@@ -235,6 +255,16 @@ h2 {
 .org {
   color: var(--ink);
   font-weight: 600;
+}
+/* The experience rows carry the same tint as the org's chip in the intro. */
+.row .org[class*='org-'] {
+  margin-left: -4px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--chip);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color var(--fade);
 }
 .role {
   color: var(--muted);

@@ -32,6 +32,7 @@ const HOVER = { line: 0.5, hidden: 0.1, tone: 0.35 } // added at full hover
 // on its nose. About 0.6 s to settle.
 const POSE_RATE = 5
 const SHADOW = { dark: 0.3, light: 0.34 }
+const WASH = { dark: 0.16, light: 0.3, hover: 0.12 } // the facets' palette colour; a little more when pointed at
 const GUIDE = 0.1 // the dashed floor ellipse, wide screens only
 
 const easeOutCubic = (x) => 1 - (1 - x) ** 3
@@ -123,6 +124,7 @@ export class CatRig {
     this.pitch = 0
     this.dim = 1
     this.shade = SHADOW.dark
+    this.wash = WASH.dark
     this.bg = new THREE.Color()
     this.ink = new THREE.Color()
     this.view = null
@@ -232,6 +234,7 @@ export class CatRig {
       this.bg.copy(colors.bg)
       this.ink.copy(colors.ink)
       this.shade = colors.light ? SHADOW.light : SHADOW.dark
+      this.wash = colors.light ? WASH.light : WASH.dark
     }
     this.offset(camera, input.scroll)
 
@@ -248,6 +251,8 @@ export class CatRig {
     this.ink.lerp(colors.ink, k)
     const shadeTarget = colors.light ? SHADOW.light : SHADOW.dark
     this.shade = damp(this.shade, shadeTarget, COLOR_RATE, dt)
+    const washTarget = colors.light ? WASH.light : WASH.dark
+    this.wash = damp(this.wash, washTarget, COLOR_RATE, dt)
     // On narrow screens the cat steps back once the text scrolls over it.
     const dimTarget = input.wide ? 1 : 1 - 0.9 * smoothstep(input.scroll, 24, 220)
     this.dim = damp(this.dim, dimTarget, 10, dt)
@@ -298,6 +303,7 @@ export class CatRig {
     fu.uBg.value.copy(this.bg)
     fu.uInk.value.copy(this.ink)
     fu.uTone.value = settle * this.dim * (1 + HOVER.tone * hover)
+    fu.uWash.value = this.wash + WASH.hover * hover
     fu.uDpr.value = gl.getPixelRatio()
 
     this.ring.visible = input.wide
@@ -317,6 +323,7 @@ export class CatRig {
       Math.abs(this.pose - hoverTarget) > 0.002 ||
       (input.hover && Math.abs(this.yaw) + Math.abs(this.pitch) > 0.002) ||
       Math.abs(this.shade - shadeTarget) > 0.001 ||
+      Math.abs(this.wash - washTarget) > 0.001 ||
       !near(this.bg, colors.bg) ||
       !near(this.ink, colors.ink)
     )

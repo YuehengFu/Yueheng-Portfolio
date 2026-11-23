@@ -1,23 +1,32 @@
 import * as THREE from 'three'
 
-// The faces: the page colour with a faint ink tone in three flat steps, like
-// a pencil shading pass. The darkest step gets diagonal hatching at a fixed
-// on-screen pitch, as on a section drawing. Both colours are uniforms, so the
-// cat follows the page theme exactly.
+// The page's five org tints (see tokens.css), as solid colours. Each facet
+// takes one, washed thinly over the page colour, so the cat reads as a
+// patchwork print in the same palette as the chips.
+const PALETTE = ['#a78bfa', '#fbbf24', '#f472b6', '#60a5fa', '#34d399']
+
+// The faces: the page colour, a soft wash of one palette colour per facet, and
+// a faint ink tone in three flat steps, like a pencil shading pass. The
+// darkest step gets diagonal hatching at a fixed on-screen pitch, as on a
+// section drawing. The colours are uniforms, so the cat follows the page theme.
 export function makeFillMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: {
       uBg: { value: new THREE.Color() },
       uInk: { value: new THREE.Color() },
       uTone: { value: 1 }, // 0..1, fades the shading back to the page colour
+      uWash: { value: 0 }, // how strongly each facet takes its palette colour
+      uPal: { value: PALETTE.map((c) => new THREE.Color(c)) },
       uDpr: { value: 1 },
       uLight: { value: new THREE.Vector3(-0.55, 0.7, 0.45).normalize() }, // view space
     },
     vertexShader: /* glsl */ `
       varying vec3 vView;
+      varying vec3 vObj;
       void main() {
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         vView = mv.xyz;
+        vObj = position;
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -27,14 +36,29 @@ export function makeFillMaterial() {
       uniform float uTone;
       uniform float uDpr;
       uniform vec3 uLight;
+      uniform float uWash;
+      uniform vec3 uPal[5];
       varying vec3 vView;
+      varying vec3 vObj;
       void main() {
         // Flat facet normal from screen derivatives: the low-poly look, no seams.
         vec3 n = normalize(cross(dFdx(vView), dFdy(vView)));
         float l = dot(n, uLight);
         float band = l > 0.45 ? 0.0 : (l > -0.05 ? 1.0 : 2.0);
         float tone = (0.035 + band * 0.045) * uTone;
-        vec3 col = mix(uBg, uInk, tone);
+
+        // The facet's colour, picked by its normal in the model's own space,
+        // so each facet keeps its colour however the cat turns.
+        vec3 on = normalize(cross(dFdx(vObj), dFdy(vObj)));
+        float h = fract(sin(dot(floor(on * 6.0 + 0.5), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+        vec3 tint = uPal[0];
+        if (h > 0.2) tint = uPal[1];
+        if (h > 0.4) tint = uPal[2];
+        if (h > 0.6) tint = uPal[3];
+        if (h > 0.8) tint = uPal[4];
+
+        vec3 col = mix(uBg, tint, uWash * min(uTone, 1.0));
+        col = mix(col, uInk, tone);
         if (band > 1.5) {
           // 45 degree lines 5 CSS px apart, measured across the lines.
           float s = (gl_FragCoord.x + gl_FragCoord.y) / (uDpr * 1.41421356);
