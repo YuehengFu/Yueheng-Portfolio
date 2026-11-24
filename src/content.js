@@ -50,7 +50,7 @@ export const experience = [
   },
   {
     org: 'YH Models',
-    tint: 'amber',
+    tint: 'orange',
     role: 'founder & product designer',
     dates: 'jun 2024 – feb 2026',
     note: 'original 3D-printed low-poly figurines, designed and sold online, with a $3,000 grant from the city.',

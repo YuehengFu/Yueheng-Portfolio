@@ -194,9 +194,17 @@ h1 {
 .org-violet {
   --chip: var(--tint-violet);
 }
-.chip-amber,
-.org-amber {
-  --chip: var(--tint-amber);
+.chip-orange,
+.org-orange {
+  --chip: var(--tint-orange);
+}
+.chip-gold,
+.org-gold {
+  --chip: var(--tint-gold);
+}
+.chip-cyan,
+.org-cyan {
+  --chip: var(--tint-cyan);
 }
 .chip-rose,
 .org-rose {

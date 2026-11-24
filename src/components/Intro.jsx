@@ -1,6 +1,6 @@
 // The intro: a big name, the school, then one-line highlights, each with its
-// org in a tinted chip. Every fact is from the old portfolio or the owner's
-// approved resume entries.
+// org in a tinted chip. Every fact is from the old
+// portfolio or the owner's approved resume entries.
 const Chip = ({ tint, children }) => <span className={tint ? `chip chip-${tint}` : 'chip'}>{children}</span>
 
 export default function Intro() {
@@ -8,21 +8,37 @@ export default function Intro() {
     <section className="hero" aria-labelledby="hi">
       <h1 id="hi">hi, i&rsquo;m yueheng.</h1>
       <p className="hero-lede">
-        first-year <span className="chip">Systems Design Engineering</span> at the{' '}
-        <span className="chip">University of Waterloo</span>, in <span className="nw">co-op</span>.
+        first-year{' '}
+        <Chip tint="cyan">
+          Systems Design Engineering
+        </Chip>{' '}
+        at the{' '}
+        <Chip tint="gold">
+          University of Waterloo
+        </Chip>
+        , in <span className="nw">co-op</span>.
       </p>
       <ul className="highlights">
         <li>
           researching AI safety and alignment as an undergraduate research assistant at the{' '}
-          <Chip tint="mint">Cheriton School of Computer Science</Chip>
+          <Chip tint="mint">
+            Cheriton School of Computer Science
+          </Chip>
         </li>
         <li>
-          interning at <Chip tint="violet">Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, applying
-          diffusion models
+          interning at{' '}
+          <Chip tint="violet">
+            Magic Hour AI
+          </Chip>{' '}
+          <span className="nw">(YC W24)</span>, applying diffusion models
         </li>
         <li>
-          founded <Chip tint="amber">YH Models</Chip>, selling <span className="nw">3D-printed</span>{' '}
-          <span className="nw">low-poly</span> figurines, the cat included
+          founded{' '}
+          <Chip tint="orange">
+            YH Models
+          </Chip>
+          , selling <span className="nw">3D-printed</span> <span className="nw">low-poly</span> figurines, the cat
+          included
         </li>
       </ul>
     </section>

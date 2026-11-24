@@ -1,5 +1,5 @@
 /* One ink on one paper. The cat is drawn with the same two colours (the scene
-   reads --bg and --ink), washed in five soft tints, one per org, which also
+   reads --bg and --ink), washed in seven soft tints, one per org, which also
    colour the org chips so each name is easy to find again. Photos join in
    black and white, and take on their colour only when someone reaches for one. */
 :root,
@@ -12,7 +12,9 @@
   --mark: rgba(236, 235, 230, 0.075);
   --dots: 0.25; /* the fallback drawing's shadow: 0.30, lightened as the cat rises */
   --tint-violet: rgba(167, 139, 250, 0.2);
-  --tint-amber: rgba(251, 191, 36, 0.17);
+  --tint-orange: rgba(251, 146, 60, 0.18);
+  --tint-gold: rgba(250, 204, 21, 0.16);
+  --tint-cyan: rgba(34, 211, 238, 0.16);
   --tint-rose: rgba(244, 114, 182, 0.18);
   --tint-sky: rgba(96, 165, 250, 0.2);
   --tint-mint: rgba(52, 211, 153, 0.17);
@@ -28,7 +30,9 @@
   --mark: rgba(26, 26, 24, 0.065);
   --dots: 0.28;
   --tint-violet: rgba(124, 58, 237, 0.13);
-  --tint-amber: rgba(217, 119, 6, 0.16);
+  --tint-orange: rgba(234, 88, 12, 0.13);
+  --tint-gold: rgba(202, 160, 4, 0.18);
+  --tint-cyan: rgba(8, 145, 178, 0.14);
   --tint-rose: rgba(219, 39, 119, 0.12);
   --tint-sky: rgba(37, 99, 235, 0.12);
   --tint-mint: rgba(5, 150, 105, 0.13);
