@@ -39,7 +39,7 @@ export const experience = [
     tint: 'mint',
     role: 'undergraduate research assistant',
     dates: 'nov 2026 – now',
-    note: 'researching AI safety and alignment at the University of Waterloo.',
+    note: 'researching LLM alignment and safety at the University of Waterloo: how language models can be influenced, and how to keep them reliable.',
   },
   {
     org: 'Magic Hour AI (YC W24)',
