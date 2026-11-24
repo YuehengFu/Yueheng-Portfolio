@@ -36,6 +36,7 @@ export const photos = {
 export const experience = [
   {
     org: 'David R. Cheriton School of Computer Science',
+    tint: 'mint',
     role: 'undergraduate research assistant',
     dates: 'nov 2026 – now',
     note: 'researching AI safety and alignment at the University of Waterloo.',
@@ -54,13 +55,6 @@ export const experience = [
     dates: 'jun 2024 – feb 2026',
     note: 'original 3D-printed low-poly figurines, designed and sold online, with a $3,000 grant from the city.',
     peek: ['catPrint', 'yhBird'],
-  },
-  {
-    org: 'Silver Owl Robotics',
-    tint: 'mint',
-    role: 'software engineer',
-    dates: 'may 2024 – may 2025',
-    note: 'optimised a C++ PID movement control system, raising autonomous speeds up to 15%.',
   },
 ]
 

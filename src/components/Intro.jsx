@@ -14,7 +14,7 @@ export default function Intro() {
       <ul className="highlights">
         <li>
           researching AI safety and alignment as an undergraduate research assistant at the{' '}
-          <Chip>Cheriton School of Computer Science</Chip>
+          <Chip tint="mint">Cheriton School of Computer Science</Chip>
         </li>
         <li>
           interning at <Chip tint="violet">Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, applying
