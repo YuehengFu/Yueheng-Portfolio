@@ -1,11 +1,13 @@
-import { Component, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Component, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Canvas, useLoader } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei/core/PerformanceMonitor.js'
 import * as THREE from 'three'
 import Cat from './Cat.jsx'
+import { CatLoader } from './CatLoader.js'
 import StaticCat from './StaticCat.jsx'
-import { POSE, WIDE, scrollAway } from './layout.js'
+import { FIGURES, POSE, WIDE, modelUrl, scrollAway } from './layout.js'
 import { useMedia, usePageVisible } from '../hooks.js'
+import { getFigure, setFigure, subscribeFigure } from '../figure.js'
 
 const readColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 const isLight = () => document.documentElement.dataset.theme === 'light'
@@ -36,7 +38,15 @@ export default function CatStage({ paused, reduced }) {
   const [maxDpr, setMaxDpr] = useState(1.5)
   const [ready, setReady] = useState(false)
   const [lost, setLost] = useState(false)
+  // The cat for the top half of the page, crystal boy past the middle.
+  const figure = FIGURES[useSyncExternalStore(subscribeFigure, getFigure)]
   const onReady = useCallback(() => setReady(true), [])
+
+  // Once the cat is up, fetch crystal boy, so the swap at the middle of the
+  // page doesn't wait on the network.
+  useEffect(() => {
+    if (ready) useLoader.preload(CatLoader, modelUrl(FIGURES.crystal))
+  }, [ready])
 
   // Shared, mutable inputs the frame loop reads; React never re-renders for them.
   const inputRef = useRef(null)
@@ -74,10 +84,22 @@ export default function CatStage({ paused, reduced }) {
     const input = inputRef.current
     const colors = colorsRef.current
     const redraw = () => invalidate.current?.()
+    // Past the middle of the page (wide screens), crystal boy takes the cat's
+    // place; back above it, the cat returns. A 60px band around the middle
+    // keeps it from flickering.
+    const swap = () => {
+      if (!input.wide) return setFigure('cat')
+      const mid = (document.documentElement.scrollHeight - window.innerHeight) / 2
+      const y = window.scrollY
+      if (getFigure() === 'cat' && y > mid + 30) setFigure('crystal')
+      else if (getFigure() === 'crystal' && y < mid - 30) setFigure('cat')
+    }
     const onScroll = () => {
       input.scroll = window.scrollY
+      swap()
       redraw()
     }
+    swap()
     const onResize = () => setAway(scrollAway(window.innerWidth, window.innerHeight))
     const onPointer = (e) => {
       if (e.pointerType !== 'mouse' || !input.lean) return
@@ -120,7 +142,14 @@ export default function CatStage({ paused, reduced }) {
 
   const onCreated = useCallback((state) => {
     invalidate.current = state.invalidate
-    state.gl.domElement.addEventListener('webglcontextlost', () => setLost(true), { once: true })
+    state.gl.domElement.addEventListener(
+      'webglcontextlost',
+      () => {
+        setLost(true)
+        setFigure('cat') // the fallback drawing is the cat
+      },
+      { once: true },
+    )
   }, [])
 
   return (
@@ -140,7 +169,7 @@ export default function CatStage({ paused, reduced }) {
             >
               <PerformanceMonitor onDecline={() => setMaxDpr(1)} />
               <Suspense fallback={null}>
-                <Cat inputRef={inputRef} colorsRef={colorsRef} mode={mode} onReady={onReady} />
+                <Cat key={figure.key} figure={figure} inputRef={inputRef} colorsRef={colorsRef} mode={mode} onReady={onReady} />
               </Suspense>
             </Canvas>
           </Fallback>

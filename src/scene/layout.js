@@ -58,6 +58,17 @@ export const POSE = {
   earY: 0.4, // and above this only the two ear tips; between the two is the face
 }
 
+// The figures on the stand: the cat, then crystal boy past the middle of the
+// page (see figure.js).
+// Each has its own model, its resting turn (the three-quarter view it holds
+// and sways around) and where its head starts, for the card's leader.
+export const FIGURES = {
+  cat: { key: 'cat', url: 'models/meowmeow.obj', restingYaw: POSE.restingYaw, headY: POSE.headY, earY: POSE.earY },
+  crystal: { key: 'crystal', url: 'models/crystal-boy.obj', restingYaw: -0.55, headY: 0.22, earY: 0.45 },
+}
+
+export const modelUrl = (figure) => `${import.meta.env.BASE_URL}${figure.url}`
+
 // Wide screens: the right edge of the text column, which the cat card never
 // crosses. Narrow screens have no cat column, so there is no edge.
 export function textEdge(w) {

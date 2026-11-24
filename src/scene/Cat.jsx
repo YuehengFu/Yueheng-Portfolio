@@ -2,16 +2,15 @@ import { useEffect, useMemo } from 'react'
 import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import { CatLoader } from './CatLoader.js'
 import { CatRig } from './CatRig.js'
-import { FADED } from './layout.js'
+import { FADED, FIGURES, modelUrl } from './layout.js'
 import { provideCat } from '../catCard.js'
 
-const MODEL_URL = `${import.meta.env.BASE_URL}models/meowmeow.obj`
 
 // The cat inside the Canvas. All motion lives in CatRig and runs through refs;
 // React only re-renders this when the viewport or the mode changes.
-export default function Cat({ inputRef, colorsRef, mode, onReady }) {
-  const object = useLoader(CatLoader, MODEL_URL)
-  const rig = useMemo(() => new CatRig(object), [object])
+export default function Cat({ figure = FIGURES.cat, inputRef, colorsRef, mode, onReady }) {
+  const object = useLoader(CatLoader, modelUrl(figure))
+  const rig = useMemo(() => new CatRig(object, figure), [object, figure])
   const camera = useThree((s) => s.camera)
   const width = useThree((s) => s.size.width)
   const height = useThree((s) => s.size.height)

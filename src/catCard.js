@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BAR, FADED, PARALLAX, WIDE, textEdge } from './scene/layout.js'
+import { subscribeFigure } from './figure.js'
 
 // The "about the cat" card. Whichever cat is on the page (the live scene or
 // the SVG drawing) registers itself here with three things:
@@ -277,6 +278,12 @@ export function useCatCard() {
       width = window.innerWidth
     }
 
+    // The figures swap at the middle of the page: an open card would point at
+    // the one that left. (The footer button's card isn't pinned to a figure.)
+    const offSwap = subscribeFigure(() => {
+      if (s.open && s.source !== 'button') hide()
+    })
+
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('pointerdown', onDown, { passive: true })
     window.addEventListener('pointerup', onUp, { passive: true })
@@ -287,6 +294,7 @@ export function useCatCard() {
     document.addEventListener('focusout', onFocusOut)
     document.documentElement.addEventListener('pointerleave', onLeave)
     return () => {
+      offSwap()
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerdown', onDown)
       window.removeEventListener('pointerup', onUp)

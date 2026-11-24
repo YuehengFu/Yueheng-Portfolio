@@ -4,7 +4,7 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { prepareGeometry, orderedEdges } from './edges.js'
 import { makeFillMaterial, makeDotShadowMaterial } from './materials.js'
-import { catFrame, PARALLAX, POSE } from './layout.js'
+import { catFrame, FIGURES, PARALLAX, POSE } from './layout.js'
 
 const { damp, clamp, smoothstep, degToRad } = THREE.MathUtils
 const ELEVATION = degToRad(POSE.elevation)
@@ -43,7 +43,8 @@ const easeOutQuart = (x) => 1 - (1 - x) ** 4
 // React mounts `root` and calls frame() and update(); nothing here allocates
 // per frame.
 export class CatRig {
-  constructor(object) {
+  constructor(object, figure = FIGURES.cat) {
+    this.fig = figure
     const { geometry, loose } = prepareGeometry(object)
     const { positions, count } = orderedEdges(geometry, loose, POSE.edgeAngle)
     this.geometry = geometry
@@ -181,7 +182,7 @@ export class CatRig {
   outline(camera, width, height) {
     if (!this.view) return null
     const saved = [this.spin.rotation.y, this.lift.position.y, this.lift.rotation.x, this.lift.rotation.z]
-    this.spin.rotation.y = POSE.restingYaw
+    this.spin.rotation.y = this.fig.restingYaw
     this.lift.position.y = this.rise
     this.lift.rotation.x = 0
     this.lift.rotation.z = 0
@@ -201,7 +202,7 @@ export class CatRig {
       box.right = Math.max(box.right, x)
       box.top = Math.min(box.top, y)
       box.bottom = Math.max(box.bottom, y)
-      if (my < POSE.headY) continue
+      if (my < this.fig.headY) continue
       head.left = Math.min(head.left, x)
       head.right = Math.max(head.right, x)
       head.bottom = Math.max(head.bottom, y)
@@ -209,7 +210,7 @@ export class CatRig {
         head.top = y
         head.topX = x
       }
-      if (my >= POSE.earY) continue
+      if (my >= this.fig.earY) continue
       if (x < face.left) {
         face.left = x
         face.leftY = y
@@ -287,7 +288,7 @@ export class CatRig {
       }
     }
     const height = rise + bob
-    this.spin.rotation.y = POSE.restingYaw + sway + this.yaw
+    this.spin.rotation.y = this.fig.restingYaw + sway + this.yaw
     this.lift.position.y = height
     this.lift.rotation.x = this.pitch
     this.lift.rotation.z = still ? 0 : free * Math.sin(t * ROLL_RATE) * ROLL
