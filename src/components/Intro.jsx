@@ -17,8 +17,8 @@ export default function Intro() {
           <Chip>Cheriton School of Computer Science</Chip>
         </li>
         <li>
-          interning at <Chip tint="violet">Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, building an
-          outpainting tool
+          interning at <Chip tint="violet">Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, applying
+          diffusion models
         </li>
         <li>
           founded <Chip tint="amber">YH Models</Chip>, selling <span className="nw">3D-printed</span>{' '}
