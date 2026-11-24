@@ -16,7 +16,7 @@ function Entries({ id, label, items }) {
             key={e.org}
             head={
               <>
-                <span className={`org org-${e.tint}`}>{e.org}</span>
+                <span className={e.tint ? `org org-${e.tint}` : 'org'}>{e.org}</span>
                 <span className="role">
                   <span aria-hidden="true"> · </span>
                   <span className="sr-only">, </span>

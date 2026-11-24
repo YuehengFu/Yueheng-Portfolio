@@ -35,6 +35,12 @@ export const photos = {
 // lists the photos that float by the pointer on hover.
 export const experience = [
   {
+    org: 'David R. Cheriton School of Computer Science',
+    role: 'undergraduate research assistant',
+    dates: 'nov 2026 – now',
+    note: 'researching AI safety and alignment at the University of Waterloo.',
+  },
+  {
     org: 'Magic Hour AI (YC W24)',
     tint: 'violet',
     role: 'applied machine learning intern',

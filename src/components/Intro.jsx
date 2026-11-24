@@ -1,7 +1,7 @@
 // The intro: a big name, the school, then one-line highlights, each with its
 // org in a tinted chip. Every fact is from the old portfolio or the owner's
 // approved resume entries.
-const Chip = ({ tint, children }) => <span className={`chip chip-${tint}`}>{children}</span>
+const Chip = ({ tint, children }) => <span className={tint ? `chip chip-${tint}` : 'chip'}>{children}</span>
 
 export default function Intro() {
   return (
@@ -13,21 +13,16 @@ export default function Intro() {
       </p>
       <ul className="highlights">
         <li>
+          researching AI safety and alignment as an undergraduate research assistant at the{' '}
+          <Chip>Cheriton School of Computer Science</Chip>
+        </li>
+        <li>
           interning at <Chip tint="violet">Magic Hour AI</Chip> <span className="nw">(YC W24)</span>, building an
           outpainting tool
         </li>
         <li>
-          co-president of one of Ontario&rsquo;s largest <Chip tint="sky">DECA</Chip> chapters
-        </li>
-        <li>
-          <span className="nw">co-chaired</span> the <Chip tint="rose">Markham Teen Arts Council</Chip>
-        </li>
-        <li>
           founded <Chip tint="amber">YH Models</Chip>, selling <span className="nw">3D-printed</span>{' '}
           <span className="nw">low-poly</span> figurines, the cat included
-        </li>
-        <li>
-          wrote C++ for the robots at <Chip tint="mint">Silver Owl Robotics</Chip>
         </li>
       </ul>
     </section>

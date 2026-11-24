@@ -236,15 +236,15 @@ h2 {
   line-height: 1.4;
 }
 
-/* Rows: name · role with a figure on the right, then a one-line note. The
-   name takes the width it needs; the figure wraps only when both won't fit. */
+/* Rows: name · role with the dates on the right, then a one-line note. The
+   dates never wrap; a long name · role wraps instead. */
 .rows {
   display: grid;
   gap: var(--row-gap);
 }
 .row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   column-gap: 16px;
   row-gap: 3px;
   align-items: baseline;
@@ -276,7 +276,7 @@ h2 {
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  text-wrap: balance;
+  white-space: nowrap;
 }
 .row-note {
   grid-column: 1 / -1;
